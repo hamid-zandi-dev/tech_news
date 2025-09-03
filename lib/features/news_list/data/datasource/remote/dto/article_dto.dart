@@ -1,8 +1,8 @@
-import 'source_dto.dart';
+import 'article_source_dto.dart';
 
 class ArticleDto {
   ArticleDto({
-    SourceDto? source,
+    ArticleSourceDto? source,
     String? author,
     String? title,
     String? description,
@@ -23,7 +23,7 @@ class ArticleDto {
 
   ArticleDto.fromJson(dynamic json) {
     _source =
-        json['source'] != null ? SourceDto.fromJson(json['source']) : null;
+        json['source'] != null ? ArticleSourceDto.fromJson(json['source']) : null;
     _author = json['author'];
     _title = json['title'];
     _description = json['description'];
@@ -33,7 +33,7 @@ class ArticleDto {
     _content = json['content'];
   }
 
-  SourceDto? _source;
+  ArticleSourceDto? _source;
   String? _author;
   String? _title;
   String? _description;
@@ -43,7 +43,7 @@ class ArticleDto {
   String? _content;
 
   ArticleDto copyWith({
-    SourceDto? source,
+    ArticleSourceDto? source,
     String? author,
     String? title,
     String? description,
@@ -63,7 +63,7 @@ class ArticleDto {
         content: content ?? _content,
       );
 
-  SourceDto? get source => _source;
+  ArticleSourceDto? get source => _source;
 
   String? get author => _author;
 
