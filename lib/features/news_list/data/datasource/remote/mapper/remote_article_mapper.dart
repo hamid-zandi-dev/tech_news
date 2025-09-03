@@ -1,7 +1,9 @@
 import 'package:tech_news/core/utils/model_mapper.dart';
 import 'package:tech_news/features/news_list/data/datasource/remote/dto/article_dto.dart';
+import 'package:tech_news/features/news_list/data/datasource/remote/dto/articles_dto.dart';
 import 'package:tech_news/features/news_list/domain/model/article_model.dart';
 import 'package:tech_news/features/news_list/domain/model/article_source_model.dart';
+import 'package:tech_news/features/news_list/domain/model/articles_model.dart';
 import 'package:uuid/uuid.dart';
 
 import '../dto/article_source_dto.dart';
@@ -34,5 +36,21 @@ class RemoteArticleMapper extends ModelMapper<ArticleModel, ArticleDto> {
         urlToImage: dto.urlToImage ?? "",
         publishedAt: dto.publishedAt ?? "",
         content: dto.content ?? "");
+  }
+
+  ArticlesModel mapToArticlesModel(ArticlesDto articlesDto) {
+    return ArticlesModel(
+      status: articlesDto.status ?? "",
+      totalResults: articlesDto.totalResults ?? 0,
+      articles: articlesDto.articles?.map((articleDto) => mapToModel(articleDto)).toList() ?? []
+    );
+  }
+
+  ArticlesDto mapToArticlesDto(ArticlesModel articlesModel) {
+    return ArticlesDto(
+      status: articlesModel.status,
+      totalResults: articlesModel.totalResults,
+      articles: articlesModel.articles.map((articleModel) => mapFromModel(articleModel)).toList()
+    );
   }
 }

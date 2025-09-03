@@ -1,4 +1,5 @@
 import 'package:tech_news/core/error_handling/custom_exception.dart';
+import 'package:tech_news/core/utils/constants.dart';
 import 'package:tech_news/features/news_list/data/datasource/local/mapper/local_article_mapper.dart';
 import 'package:tech_news/features/news_list/data/datasource/remote/abstraction/articles_data_source.dart';
 import 'package:tech_news/features/news_list/domain/repository/articles_repository.dart';
@@ -19,10 +20,9 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
   @override
   Future<Either<Failure, ArticlesModel>> getArticles(String query, int page) async {
     try {
-
       final response = await _articlesDataSource.getArticles(query ,page);
-      ArticlesModel articlesModel = _localArticleMapper.mapFromEntity(response);
-      return right(recipesModel);
+      ArticlesModel articlesModel = _remoteArticleMapper.mapToArticlesModel(response);
+      return right(articlesModel);
     }
     on NoInternetConnectionException {
       return left(Failure.noInternetConnectionError);

@@ -10,3 +10,8 @@ class SharedPreferencesKeys {
   static const currentFont = "CurrentFont";
   static const isSelectedLanguageForFirstTime = "IsSelectedLanguageForFirstTime";
 }
+
+class RestApiError {
+  static const int fromServerError = 500;
+  static const int toServerError = 599;
+}

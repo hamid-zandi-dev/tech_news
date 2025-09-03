@@ -69,7 +69,7 @@ void provideArticleDataSource() {
 void provideArticleRepository() {
   if (!GetIt.instance.isRegistered<ArticlesRepository>()) {
     locator.registerFactory<ArticlesRepository>(() =>
-        ArticlesRepositoryImpl(locator(), locator()));
+        ArticlesRepositoryImpl(locator(), locator(), locator()));
   }
 }
 
