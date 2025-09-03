@@ -1,16 +1,15 @@
-import 'dart:isolate';
-
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tech_news/core/utils/shared_preferences_manager.dart';
-import 'package:tech_news/features/news_list/data/datasource/local/mapper/local_article_mapper.dart';
-import 'package:tech_news/features/news_list/data/datasource/remote/abstraction/articles_data_source.dart';
-import 'package:tech_news/features/news_list/data/datasource/remote/impl/articles_data_source_impl.dart';
-import 'package:tech_news/features/news_list/data/datasource/remote/mapper/remote_article_mapper.dart';
-import 'package:tech_news/features/news_list/data/repository/articles_repository_impl.dart';
-import 'package:tech_news/features/news_list/domain/repository/articles_repository.dart';
-import 'package:tech_news/features/news_list/domain/usecase/get_articles_usecase.dart';
+import 'package:tech_news/features/article_list/data/datasource/local/mapper/local_article_mapper.dart';
+import 'package:tech_news/features/article_list/data/datasource/remote/abstraction/articles_data_source.dart';
+import 'package:tech_news/features/article_list/data/datasource/remote/impl/articles_data_source_impl.dart';
+import 'package:tech_news/features/article_list/data/datasource/remote/mapper/remote_article_mapper.dart';
+import 'package:tech_news/features/article_list/data/repository/articles_repository_impl.dart';
+import 'package:tech_news/features/article_list/domain/repository/articles_repository.dart';
+import 'package:tech_news/features/article_list/domain/usecase/get_articles_usecase.dart';
+import 'package:tech_news/features/article_list/presentation/bloc/article_list_bloc.dart';
 
 GetIt locator = GetIt.instance;
 
@@ -81,8 +80,8 @@ void provideArticleUseCases() {
 }
 
 void provideArticleBloc() {
-  if (!GetIt.instance.isRegistered<ArticlesBloc>()) {
-    locator.registerFactory<ArticlesBloc>(() => ArticlesBloc(locator()));
+  if (!GetIt.instance.isRegistered<ArticleListBloc>()) {
+    locator.registerFactory<ArticleListBloc>(() => ArticleListBloc(locator()));
   }
 }
 
