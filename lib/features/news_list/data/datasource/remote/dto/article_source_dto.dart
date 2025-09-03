@@ -1,5 +1,5 @@
-class SourceDto {
-  SourceDto({
+class ArticleSourceDto {
+  ArticleSourceDto({
     String? id,
     String? name,
   }) {
@@ -7,7 +7,7 @@ class SourceDto {
     _name = name;
   }
 
-  SourceDto.fromJson(dynamic json) {
+  ArticleSourceDto.fromJson(dynamic json) {
     _id = json['id'];
     _name = json['name'];
   }
@@ -15,11 +15,11 @@ class SourceDto {
   String? _id;
   String? _name;
 
-  SourceDto copyWith({
+  ArticleSourceDto copyWith({
     String? id,
     String? name,
   }) =>
-      SourceDto(
+      ArticleSourceDto(
         id: id ?? _id,
         name: name ?? _name,
       );
