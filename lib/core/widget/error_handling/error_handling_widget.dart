@@ -83,33 +83,35 @@ class _ErrorHandlingWidgetState extends State<ErrorHandlingWidget> {
   }
 
   Widget _createRetryWidget() {
-    return InkWell(
-      borderRadius: const BorderRadius.all(Radius.circular(Dimen.retryRadius)),
-      child: Ink(
-        decoration: BoxDecoration(
-          color: _appColor.backgroundColor,
-          border: Border.all(color: _appColor.iconTintColor, width: 1.5),
-          borderRadius: const BorderRadius.all(Radius.circular(Dimen.retryRadius)),
-        ),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              _createRetryIconWidget(),
-              const SizedBox(width: 4),
-              _createRetryTextWidget(),
-            ],
+    return Material(
+      child: InkWell(
+        borderRadius: const BorderRadius.all(Radius.circular(Dimen.retryRadius)),
+        child: Ink(
+          decoration: BoxDecoration(
+            color: _appColor.backgroundColor,
+            border: Border.all(color: _appColor.iconTintColor, width: 1.5),
+            borderRadius: const BorderRadius.all(Radius.circular(Dimen.retryRadius)),
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _createRetryIconWidget(),
+                const SizedBox(width: 4),
+                _createRetryTextWidget(),
+              ],
+            ),
           ),
         ),
+        onTap: () {
+          if (widget.onClickListener != null) {
+            widget.onClickListener!();
+          }
+        },
       ),
-      onTap: () {
-        if (widget.onClickListener != null) {
-          widget.onClickListener!();
-        }
-      },
     );
   }
 

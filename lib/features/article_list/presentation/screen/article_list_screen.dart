@@ -198,7 +198,10 @@ class _ArticleListChildScreenState extends State<_ArticleListChildScreen> with A
     );
   }
 
-  void _handleArticleClickListener(String articleId) {
+  void _handleArticleClickListener(int? articleId) {
+    if(articleId == null) {
+      return;
+    }
     Navigator.of(context, rootNavigator: true).pushNamed(AppRoutes.articleDetailsRoute,
         arguments: {
           ArticleDetailsScreen.articleId: articleId
