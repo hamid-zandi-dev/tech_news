@@ -10,16 +10,18 @@ class GetArticlesUsecase extends UseCase<Either<Failure, ArticlesModel>, GetArti
 
   @override
   Future<Either<Failure, ArticlesModel>> call(GetArticlesParams input) {
-    return _articlesRepository.getArticles(input.query, input.page);
+    return _articlesRepository.getArticles(input.query, input.from, input.to, input.page);
   }
 }
 
 class GetArticlesParams {
   final String query;
+  final String from;
+  final String to;
   final int page;
-  GetArticlesParams._(this.query, this.page);
+  GetArticlesParams._(this.query, this.from, this.to, this.page);
 
-  static GetArticlesParams forQuery(String query, int page) {
-    return GetArticlesParams._(query, page);
+  static GetArticlesParams forQuery(String query, String from, String to, int page) {
+    return GetArticlesParams._(query, from, to, page);
   }
 }

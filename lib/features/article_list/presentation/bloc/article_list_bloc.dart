@@ -1,7 +1,9 @@
 import 'package:bloc/bloc.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:tech_news/core/error_handling/failure.dart';
 import 'package:tech_news/core/utils/Constants.dart';
+import 'package:tech_news/core/utils/utils.dart';
 import 'package:tech_news/features/article_list/domain/model/article_model.dart';
 import 'package:tech_news/features/article_list/domain/model/articles_model.dart';
 import 'package:tech_news/features/article_list/domain/usecase/get_articles_usecase.dart';
@@ -19,10 +21,17 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
 
   void articleListBloc() {
     int pageNumber = 1;
+    DateTime now = DateTime.now();
+    DateFormat dateFormat = DateFormat("yyyy-MM-ddThh:mm:ss");
+    String to = dateFormat.format(now);
+    String from = dateFormat.format(now.subtract(const Duration(days: 1)));
     int totalPage = 1;
     on<PageToInitial>((event, emit) {
       pageNumber = 1;
       totalPage = 1;
+      now = DateTime.now();
+      to = dateFormat.format(now);
+      from = dateFormat.format(now.subtract(const Duration(days: 1)));
       _articleListModel.clear();
     });
     on<GetArticleListEvent>((event, emit) async {
@@ -32,10 +41,10 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
         }
         else {
           emit(GetArticleListState(ArticleListLoadingMoreStatus()));
-        } // todo: add proper query param
-        final result = await _getArticlesUsecase(GetArticlesParams.forQuery("" ,pageNumber));
+        }
+        final result = await _getArticlesUsecase(GetArticlesParams.forQuery("microsoft" , from, to, pageNumber));
         result.fold(
-                (failure) {
+            (failure) {
               if (_articleListModel.isEmpty) {
                 _handleFailureResponse(emit, failure);
               }
@@ -43,9 +52,9 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
                 emit(GetArticleListState(ArticleListLoadedMoreErrorStatus()));
               }
             },
-                (success) {
+            (success) {
               _handleSuccessResponse(emit, success);
-              totalPage = (success.totalResults / Constants.articlesLimit) as int;
+              totalPage = Utils.getTotalPages(success.totalResults as int, Constants.articlesLimit);
               pageNumber++;
             }
         );

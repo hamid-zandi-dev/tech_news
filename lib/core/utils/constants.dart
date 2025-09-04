@@ -11,6 +11,12 @@ class SharedPreferencesKeys {
   static const isSelectedLanguageForFirstTime = "IsSelectedLanguageForFirstTime";
 }
 
+class AppRoutes {
+  static const String initialRoute = "/";
+  static const String articleListRoute = "/article_list";
+  static const String articleDetailsRoute = "/article_details";
+}
+
 class RestApiError {
   static const int fromServerError = 500;
   static const int toServerError = 599;
@@ -38,7 +44,6 @@ class Dimen {
   static const double retryRadius = 8;
 }
 
-
 class ImagesPath {
   static const _path = "assets/images/";
   static const iconRetry2 = "${_path}ic_retry2.svg";
@@ -47,4 +52,22 @@ class ImagesPath {
   static const noFoundData = "${_path}empty_data_error.png";
   static const unknownError = "${_path}unknown_error.png";
   static const articlePlaceHolder = "${_path}article_placeholder.svg";
+}
+
+enum FontFamily {
+  iranSans('IRANSans'),
+  openSans('OpenSans');
+
+  final String font;
+  const FontFamily(this.font);
+}
+
+enum Locales {
+  englishLocale("en"),
+  kurdishLocale("ku"),
+  arabicLocale("ar"),
+  persianLocale("fa");
+
+  final String locale;
+  const Locales(this.locale);
 }

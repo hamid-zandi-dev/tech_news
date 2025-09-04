@@ -18,9 +18,9 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
   ArticlesRepositoryImpl(this._articlesDataSource, this._localArticleMapper, this._remoteArticleMapper);
 
   @override
-  Future<Either<Failure, ArticlesModel>> getArticles(String query, int page) async {
+  Future<Either<Failure, ArticlesModel>> getArticles(String query, String from, String to, int page) async {
     try {
-      final response = await _articlesDataSource.getArticles(query ,page);
+      final response = await _articlesDataSource.getArticles(query , from, to, page);
       ArticlesModel articlesModel = _remoteArticleMapper.mapToArticlesModel(response);
       return right(articlesModel);
     }
