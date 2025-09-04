@@ -4,9 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:tech_news/core/di/locator.dart';
 import 'package:tech_news/core/error_handling/failure.dart';
 import 'package:tech_news/core/theme/theme_manager.dart';
+import 'package:tech_news/core/utils/Constants.dart';
 import 'package:tech_news/core/widget/circular_progress_bar_widget.dart';
 import 'package:tech_news/core/widget/error_handling/error_handling_factory_widget.dart';
 import 'package:tech_news/core/widget/non_scrollable_refresh_indicator_widget.dart';
+import 'package:tech_news/features/article_details/presentation/screen/article_details_screen.dart';
 import 'package:tech_news/features/article_list/presentation/bloc/article_list_status.dart';
 import 'package:tech_news/features/article_list/presentation/widget/article_item_widget.dart';
 import '../../domain/model/article_model.dart';
@@ -29,7 +31,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> {
 }
 
 class _ArticleListChildScreen extends StatefulWidget {
-  const _ArticleListChildScreen({super.key});
+  const _ArticleListChildScreen();
 
   @override
   State<_ArticleListChildScreen> createState() => _ArticleListChildScreenState();
@@ -182,7 +184,7 @@ class _ArticleListChildScreenState extends State<_ArticleListChildScreen> with A
             nameOfQuery: list[index].author,
             date: list[index].publishedAt,
             onClickListener: () {
-              _handleRecipeClickListener(list[index].id);
+              _handleArticleClickListener(list[index].id);
             },
           );
         },
@@ -196,12 +198,12 @@ class _ArticleListChildScreenState extends State<_ArticleListChildScreen> with A
     );
   }
 
-  void _handleRecipeClickListener(String articleId) {
-    // Navigator.of(context, rootNavigator: true).pushNamed(AppRoutes.recipeDetailRoute,
-    //     arguments: {
-    //       RecipeDetailScreen.recipeId: articleId
-    //     }
-    // );
+  void _handleArticleClickListener(String articleId) {
+    Navigator.of(context, rootNavigator: true).pushNamed(AppRoutes.articleDetailsRoute,
+        arguments: {
+          ArticleDetailsScreen.articleId: articleId
+        }
+    );
   }
 
   @override

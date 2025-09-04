@@ -12,6 +12,12 @@ class ArticleDetailsScreen extends StatefulWidget {
 class _ArticleDetailsScreenState extends State<ArticleDetailsScreen> {
   @override
   Widget build(BuildContext context) {
-    return const Placeholder();
+    return Container(
+      color: Colors.white,
+      child: const Text(
+        "Hello details",
+        style: TextStyle(color: Colors.black, fontSize: 18),
+      ),
+    );
   }
 }
