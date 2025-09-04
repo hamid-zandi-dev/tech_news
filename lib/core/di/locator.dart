@@ -2,14 +2,17 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tech_news/core/utils/shared_preferences_manager.dart';
+import 'package:tech_news/features/article_list/data/datasource/local/abstraction/local_articles_data_source.dart';
+import 'package:tech_news/features/article_list/data/datasource/local/dao/article_dao.dart';
+import 'package:tech_news/features/article_list/data/datasource/local/impl/local_articles_data_source_impl.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/mapper/local_article_mapper.dart';
-import 'package:tech_news/features/article_list/data/datasource/remote/abstraction/articles_data_source.dart';
-import 'package:tech_news/features/article_list/data/datasource/remote/impl/articles_data_source_impl.dart';
 import 'package:tech_news/features/article_list/data/datasource/remote/mapper/remote_article_mapper.dart';
 import 'package:tech_news/features/article_list/data/repository/articles_repository_impl.dart';
 import 'package:tech_news/features/article_list/domain/repository/articles_repository.dart';
 import 'package:tech_news/features/article_list/domain/usecase/get_articles_usecase.dart';
 import 'package:tech_news/features/article_list/presentation/bloc/article_list_bloc.dart';
+
+import '../../features/article_list/data/datasource/local/dao/database.dart';
 
 GetIt locator = GetIt.instance;
 
@@ -18,9 +21,9 @@ setupInjection() async {
   provideSharedPreferencesManager(locator());
   provideDioBaseOptions();
   provideDio();
-
+  await _provideDatabase();
   provideArticleMappers();
-  provideArticleDataSource();
+  provideLocalArticleDataSource();
   provideArticleRepository();
   provideArticleUseCases();
   provideArticleBloc();
@@ -49,6 +52,16 @@ void provideDioBaseOptions() {
   locator.registerSingleton<BaseOptions>(options);
 }
 
+Future<void> _provideDatabase() async {
+  final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+  if (!GetIt.instance.isRegistered<AppDatabase>()) {
+    locator.registerLazySingleton(() => database);
+  }
+  if (!GetIt.instance.isRegistered<ArticleDao>()) {
+    locator.registerLazySingleton(() => database.articleDao);
+  }
+}
+
 void provideArticleMappers() {
   if (!GetIt.instance.isRegistered<LocalArticleMapper>()) {
     locator.registerFactory<LocalArticleMapper>(() => LocalArticleMapper());
@@ -58,17 +71,18 @@ void provideArticleMappers() {
   }
 }
 
-void provideArticleDataSource() {
-  if (!GetIt.instance.isRegistered<ArticlesDataSource>()) {
-    locator.registerFactory<ArticlesDataSource>(() =>
-        ArticlesDataSourceImpl(locator()));
+void provideLocalArticleDataSource() {
+  if (!GetIt.instance.isRegistered<LocalArticlesDataSource>()) {
+    locator.registerFactory<LocalArticlesDataSource>(
+        () => LocalArticlesDataSourceImpl(locator<AppDatabase>().articleDao));
+  }
   }
 }
 
 void provideArticleRepository() {
   if (!GetIt.instance.isRegistered<ArticlesRepository>()) {
     locator.registerFactory<ArticlesRepository>(() =>
-        ArticlesRepositoryImpl(locator(), locator(), locator()));
+        ArticlesRepositoryImpl(locator(), locator(), locator(), locator()));
   }
 }
 

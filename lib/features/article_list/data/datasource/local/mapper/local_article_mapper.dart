@@ -9,8 +9,9 @@ class LocalArticleMapper extends EntityMapper<ArticleEntity, ArticleModel> {
   @override
   ArticleModel mapFromEntity(ArticleEntity entity) {
     return ArticleModel(
-      id: entity.id ?? const Uuid().v4(),
+      id: entity.id ?? 0,
       source:  ArticleSourceModel(id: entity.sourceId, name: entity.sourceName),
+      queryTitle: entity.queryTitle,
       author: entity.author,
       title: entity.title,
       description: entity.description,
@@ -23,10 +24,11 @@ class LocalArticleMapper extends EntityMapper<ArticleEntity, ArticleModel> {
 
   @override
   ArticleEntity mapToEntity(ArticleModel model) {
-    return ArticleEntity(
+    return ArticleEntity.withId(
         id: model.id,
         sourceId: model.source.id,
         sourceName: model.source.name,
+        queryTitle: model.queryTitle,
         author: model.author,
         title: model.title,
         description: model.description,
@@ -34,5 +36,13 @@ class LocalArticleMapper extends EntityMapper<ArticleEntity, ArticleModel> {
         urlToImage: model.urlToImage,
         publishedAt: model.publishedAt,
         content: model.content);
+  }
+
+  List<ArticleModel> mapToArticleModelList(List<ArticleEntity> articlesEntity) {
+    return articlesEntity.map((articleEntity) => mapFromEntity(articleEntity)).toList();
+  }
+
+  List<ArticleEntity> mapToArticleEntityList(List<ArticleModel> articlesModel) {
+    return articlesModel.map((articleModel) => mapToEntity(articleModel)).toList();
   }
 }
