@@ -46,7 +46,7 @@ class Dimen {
 
 class ImagesPath {
   static const _path = "assets/images/";
-  static const iconRetry2 = "${_path}ic_retry2.svg";
+  static const iconRetry = "${_path}ic_retry.svg";
   static const noInternetConnectionError = "${_path}no_connection_error.png";
   static const serverError = "${_path}server_error.png";
   static const noFoundData = "${_path}empty_data_error.png";

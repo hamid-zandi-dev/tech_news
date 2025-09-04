@@ -7,12 +7,12 @@ class CustomAppBar extends StatelessWidget {
   final bool? backButtonVisibility;
   final void Function()? onBackButtonClickListener;
   const CustomAppBar({
-    Key? key,
+    super.key,
     required this.appBarTitle,
     required this.appBarIcon,
     this.backButtonVisibility,
     this.onBackButtonClickListener,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -21,11 +21,12 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
 
   void articleListBloc() {
     int pageNumber = 1;
+    int totalPage = 1;
+    String query = "Microsoft OR Apple OR Google OR Tesla";
     DateTime now = DateTime.now();
     DateFormat dateFormat = DateFormat("yyyy-MM-ddThh:mm:ss");
     String to = dateFormat.format(now);
-    String from = dateFormat.format(now.subtract(const Duration(days: 1)));
-    int totalPage = 1;
+    String from = dateFormat.format(now.subtract(const Duration(days: 2)));
     on<PageToInitial>((event, emit) {
       pageNumber = 1;
       totalPage = 1;
@@ -42,7 +43,7 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
         else {
           emit(GetArticleListState(ArticleListLoadingMoreStatus()));
         }
-        final result = await _getArticlesUsecase(GetArticlesParams.forQuery("microsoft" , from, to, pageNumber));
+        final result = await _getArticlesUsecase(GetArticlesParams.forQuery(query , from, to, pageNumber));
         result.fold(
             (failure) {
               if (_articleListModel.isEmpty) {

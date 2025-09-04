@@ -115,7 +115,7 @@ class _ErrorHandlingWidgetState extends State<ErrorHandlingWidget> {
 
   Widget _createRetryIconWidget() {
     return SvgPicture.asset(
-      ImagesPath.iconRetry2,
+      ImagesPath.iconRetry,
       width: 20,
       height: 20,
     );

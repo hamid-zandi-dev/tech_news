@@ -1,6 +1,5 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:tech_news/features/article_details/presentation/screen/article_details_screen.dart';
 import 'package:tech_news/features/article_list/presentation/screen/article_list_screen.dart';
 import 'core/color/colors.dart';

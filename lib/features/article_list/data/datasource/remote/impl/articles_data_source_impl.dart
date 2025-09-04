@@ -25,6 +25,7 @@ class ArticlesDataSourceImpl implements ArticlesDataSource {
             "to":  to,
             "page": page,
             "pageSize": Constants.articlesLimit,
+            "language": "en",
             "apiKey": "88bd3807629e4f50abb1f0fb12df0c1b"
           },
       );
