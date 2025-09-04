@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'constants.dart';
@@ -45,5 +46,15 @@ class Utils {
       return totalPages;
     }
     return 0;
+  }
+
+  static Future<bool> checkInternet() async {
+    try {
+      final dio = Dio();
+      final response = await dio.get('https://www.google.com');
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
   }
 }

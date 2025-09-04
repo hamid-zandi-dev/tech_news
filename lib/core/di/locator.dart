@@ -6,6 +6,8 @@ import 'package:tech_news/features/article_list/data/datasource/local/abstractio
 import 'package:tech_news/features/article_list/data/datasource/local/dao/article_dao.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/impl/local_articles_data_source_impl.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/mapper/local_article_mapper.dart';
+import 'package:tech_news/features/article_list/data/datasource/remote/abstraction/remote_articles_data_source.dart';
+import 'package:tech_news/features/article_list/data/datasource/remote/impl/remote_articles_data_source_impl.dart';
 import 'package:tech_news/features/article_list/data/datasource/remote/mapper/remote_article_mapper.dart';
 import 'package:tech_news/features/article_list/data/repository/articles_repository_impl.dart';
 import 'package:tech_news/features/article_list/domain/repository/articles_repository.dart';
@@ -23,6 +25,7 @@ setupInjection() async {
   provideDio();
   await _provideDatabase();
   provideArticleMappers();
+  provideRemoteArticleDataSource();
   provideLocalArticleDataSource();
   provideArticleRepository();
   provideArticleUseCases();
@@ -76,6 +79,12 @@ void provideLocalArticleDataSource() {
     locator.registerFactory<LocalArticlesDataSource>(
         () => LocalArticlesDataSourceImpl(locator<AppDatabase>().articleDao));
   }
+}
+
+void provideRemoteArticleDataSource() {
+  if (!GetIt.instance.isRegistered<RemoteArticlesDataSource>()) {
+    locator.registerFactory<RemoteArticlesDataSource>(() =>
+        RemoteArticlesDataSourceImpl(locator()));
   }
 }
 

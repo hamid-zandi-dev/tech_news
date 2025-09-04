@@ -27,7 +27,6 @@ class RemoteArticleMapper extends ModelMapper<ArticleModel, ArticleDto> {
   @override
   ArticleModel mapToModel(ArticleDto dto) {
     return ArticleModel(
-        id: const Uuid().v4(),
         source: ArticleSourceModel(id: dto.source?.id ?? "", name: dto.source?.name ?? ""),
         author: dto.author ?? "",
         title: dto.title ?? "",
