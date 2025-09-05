@@ -219,6 +219,12 @@ The repository follows this data flow:
    echo "API_KEY=your_newsapi_key_here" > .env
    ```
 
+   **Note**: The `.env` file should contain:
+   ```
+   API_KEY=xxxxxxxxxxxxxxxxxxxxxxxxx
+   ```
+   Replace `xxxxxxxxxxxxxxxxxxxxxxxxx` with your actual NewsAPI key from [newsapi.org](https://newsapi.org/).
+
 4. **Generate database code**
    ```bash
    flutter packages pub run build_runner build
@@ -289,35 +295,3 @@ flutter build ios --release
 ```bash
 flutter build web --release
 ```
-
-## 📈 Future Enhancements
-
-- **Push Notifications**: Real-time news updates
-- **Personalization**: User preference-based content filtering
-- **Analytics**: User engagement tracking
-- **Multi-language Support**: Internationalization
-- **Dark Mode**: Theme switching capabilities
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 👥 Team
-
-- **Architecture**: Clean Architecture with Repository Pattern
-- **State Management**: BLoC Pattern
-- **Database**: SQLite with Floor ORM
-- **Networking**: Dio HTTP Client
-- **Testing**: Comprehensive test suite with Mockito
-
----
-
-*This documentation represents a senior-level implementation of a Flutter application with sophisticated data management, caching strategies, and algorithmic content distribution. The architecture demonstrates enterprise-level patterns and best practices for scalable mobile application development.*
