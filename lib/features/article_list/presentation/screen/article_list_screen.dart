@@ -161,7 +161,7 @@ class _ArticleListScreenState extends State<ArticleListScreen>
             title: list[index].title,
             image: list[index].urlToImage,
             description: list[index].description,
-            nameOfQuery: list[index].author,
+            nameOfQuery: list[index].queryTitle,
             date: list[index].publishedAt,
             onClickListener: () {
               _handleArticleClickListener(list[index].id);

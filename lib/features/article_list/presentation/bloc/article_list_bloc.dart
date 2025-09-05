@@ -7,7 +7,6 @@ import 'package:tech_news/core/error_handling/failure.dart';
 import 'package:tech_news/core/utils/constants.dart';
 import 'package:tech_news/core/utils/utils.dart';
 import 'package:tech_news/features/article_list/domain/model/article_model.dart';
-import 'package:tech_news/features/article_list/domain/model/articles_model.dart';
 import 'package:tech_news/features/article_list/domain/usecase/get_articles_usecase.dart';
 import 'package:tech_news/features/article_list/presentation/bloc/article_list_status.dart';
 
@@ -19,9 +18,9 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
   final GetArticlesUsecase _getArticlesUsecase;
   final List<ArticleModel> _articleListModel = [];
   int _pageNumber = 1;
-  int _totalPage = 1;
   String _to = "";
   String _from = "";
+  bool _endOfData = false;
 
   ArticleListBloc(this._getArticlesUsecase) : super(InitialState()) {
     on<PageToInitial>((event, emit) => _handlePageToInitial(emit));
@@ -30,7 +29,8 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
 
   _handlePageToInitial(Emitter<ArticleListState> emit) {
     _pageNumber = 1;
-    _totalPage = 1;
+    _endOfData = false;
+    _articleListModel.clear();
     DateTime now = DateTime.now();
     DateFormat dateFormat = DateFormat("yyyy-MM-ddThh:mm:ss");
     _to = dateFormat.format(now);
@@ -40,18 +40,18 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
 
   Future _handleGetArticleListEvent(Emitter<ArticleListState> emit) async {
     Logger.debug(
-        'Fetching articles for page $_pageNumber, total pages: $_totalPage, current articles: ${_articleListModel.length}',
+        'Fetching articles for page $_pageNumber, current articles: ${_articleListModel.length}',
         tag: 'ArticleListBloc');
 
-    if (_pageNumber <= _totalPage) {
+    if (!_endOfData) {
       if (_articleListModel.isEmpty) {
         emit(GetArticleListState(ArticleListLoadingStatus()));
       } else {
         emit(GetArticleListState(ArticleListLoadingMoreStatus()));
       }
-      final resultStream = _getArticlesUsecase(
-          GetArticlesParams.forQuery(_query, _to, _from, _pageNumber));
-      await emit.forEach<Either<Failure, ArticlesModel>>(
+      final resultStream = _getArticlesUsecase(GetArticlesParams.forQuery(
+          _query, _to, _from, _pageNumber, Constants.articlesPageLimit));
+      await emit.forEach<Either<Failure, List<ArticleModel>>>(
         resultStream,
         onData: (result) {
           return result.fold(
@@ -63,8 +63,7 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
             GetArticleListState(ArticleListErrorStatus(Failure.unknownError)),
       );
     } else {
-      Logger.debug(
-          'No more pages to load. Current page: $_pageNumber, Total pages: $_totalPage',
+      Logger.debug('No more pages to load. Current page: $_pageNumber',
           tag: 'ArticleListBloc');
     }
   }
@@ -82,22 +81,24 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
     return GetArticleListState(ArticleListErrorStatus(failure));
   }
 
-  GetArticleListState _handleSuccessResponse(ArticlesModel articlesModel) {
+  GetArticleListState _handleSuccessResponse(List<ArticleModel> articles) {
     Logger.debug(
-        'Articles fetched successfully: ${articlesModel.articles.length} articles, total results: ${articlesModel.totalResults}',
+        'Articles fetched successfully: ${articles.length} articles',
         tag: 'ArticleListBloc');
 
-    _articleListModel.addAll(articlesModel.articles);
+    if (articles.isNotEmpty) {
+      _articleListModel.addAll(articles);
+
+      // Increment page number for next pagination
+      _pageNumber++;
+    }else{
+      _endOfData = true;
+    }
     ArticleListLoadedStatus loadedStatus =
         ArticleListLoadedStatus(_articleListModel);
-    _totalPage = Utils.getTotalPages(
-        articlesModel.totalResults as int, Constants.articlesPageLimit);
-
-    // Increment page number for next pagination
-    _pageNumber++;
 
     Logger.debug(
-        'Updated state - Page: $_pageNumber, Total Pages: $_totalPage, Total Articles: ${_articleListModel.length}',
+        'Updated state - Page: $_pageNumber, Total Articles: ${_articleListModel.length}',
         tag: 'ArticleListBloc');
 
     if (loadedStatus.list.isEmpty) {

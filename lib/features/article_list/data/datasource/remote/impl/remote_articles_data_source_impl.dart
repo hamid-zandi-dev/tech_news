@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:tech_news/core/error_handling/custom_exception.dart';
 import 'package:tech_news/core/utils/Constants.dart';
@@ -13,7 +12,11 @@ class RemoteArticlesDataSourceImpl implements RemoteArticlesDataSource {
 
   @override
   Future<ArticlesDto> getArticles(
-      String query, String from, String to, int page) async {
+      {required String query,
+      required String from,
+      required String to,
+      required int page,
+      required int pageSize}) async {
     try {
       Logger.debug('Making API request for query: $query, page: $page',
           tag: 'RemoteDataSource');
@@ -26,7 +29,7 @@ class RemoteArticlesDataSourceImpl implements RemoteArticlesDataSource {
           "from": from,
           "to": to,
           "page": page,
-          "pageSize": Constants.articlesPageLimit,
+          "pageSize": pageSize,
           "language": "en",
         },
         options: Options(

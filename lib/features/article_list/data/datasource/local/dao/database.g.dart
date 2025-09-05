@@ -182,6 +182,25 @@ class _$ArticleDao extends ArticleDao {
   final DeletionAdapter<ArticleEntity> _articleEntityDeletionAdapter;
 
   @override
+  Stream<List<ArticleEntity>> getAllArticles() {
+    return _queryAdapter.queryListStream('SELECT * FROM articles',
+        mapper: (Map<String, Object?> row) => ArticleEntity(
+            id: row['id'] as int?,
+            sourceId: row['sourceId'] as String,
+            sourceName: row['sourceName'] as String,
+            author: row['author'] as String,
+            title: row['title'] as String,
+            description: row['description'] as String,
+            url: row['url'] as String,
+            urlToImage: row['urlToImage'] as String,
+            publishedAt: row['publishedAt'] as String,
+            content: row['content'] as String,
+            queryTitle: row['queryTitle'] as String),
+        queryableName: 'articles',
+        isView: false);
+  }
+
+  @override
   Stream<List<ArticleEntity>> getArticlesWithPaging(
     String to,
     String from,
@@ -243,17 +262,6 @@ class _$ArticleDao extends ArticleDao {
         'SELECT * FROM articles      WHERE publishedAt <= ?2 AND publishedAt > ?3 AND title = ?1      ORDER BY publishedAt',
         mapper: (Map<String, Object?> row) => ArticleEntity(id: row['id'] as int?, sourceId: row['sourceId'] as String, sourceName: row['sourceName'] as String, author: row['author'] as String, title: row['title'] as String, description: row['description'] as String, url: row['url'] as String, urlToImage: row['urlToImage'] as String, publishedAt: row['publishedAt'] as String, content: row['content'] as String, queryTitle: row['queryTitle'] as String),
         arguments: [title, to, from]);
-  }
-
-  @override
-  Future<List<ArticleEntity>> getAllArticles(
-    String to,
-    String from,
-  ) async {
-    return _queryAdapter.queryList(
-        'SELECT * FROM articles      WHERE publishedAt <= ?1 AND publishedAt > ?2',
-        mapper: (Map<String, Object?> row) => ArticleEntity(id: row['id'] as int?, sourceId: row['sourceId'] as String, sourceName: row['sourceName'] as String, author: row['author'] as String, title: row['title'] as String, description: row['description'] as String, url: row['url'] as String, urlToImage: row['urlToImage'] as String, publishedAt: row['publishedAt'] as String, content: row['content'] as String, queryTitle: row['queryTitle'] as String),
-        arguments: [to, from]);
   }
 
   @override

@@ -5,6 +5,9 @@ import 'dart:async';
 @dao
 abstract class ArticleDao {
 
+  @Query('SELECT * FROM articles')
+  Stream<List<ArticleEntity>> getAllArticles();
+
   @Query('''
     SELECT * FROM articles 
     WHERE publishedAt <= :to AND publishedAt > :from 
@@ -36,12 +39,6 @@ abstract class ArticleDao {
     ORDER BY publishedAt 
   ''')
   Future<List<ArticleEntity>> getArticlesWithTitle(String title, String to, String from);
-
-  @Query('''
-    SELECT * FROM articles 
-    WHERE publishedAt <= :to AND publishedAt > :from
-  ''')
-  Future<List<ArticleEntity>> getAllArticles(String to, String from);
 
   @Query('''
     SELECT * FROM articles 

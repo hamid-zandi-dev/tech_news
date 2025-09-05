@@ -1,7 +1,8 @@
+import 'package:rxdart/rxdart.dart';
 import 'package:dartz/dartz.dart';
+
 import 'package:tech_news/core/error_handling/custom_exception.dart';
 import 'package:tech_news/core/error_handling/failure.dart';
-import 'package:tech_news/core/utils/constants.dart';
 import 'package:tech_news/core/utils/utils.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/abstraction/local_articles_data_source.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/entity/article_entity.dart';
@@ -19,179 +20,171 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
   final LocalArticlesDataSource _localArticlesDataSource;
 
   ArticlesRepositoryImpl(
-      this._remoteArticlesDataSource,
-      this._remoteArticleMapper,
-      this._localArticlesDataSource,
-      this._localArticleMapper);
+    this._remoteArticlesDataSource,
+    this._remoteArticleMapper,
+    this._localArticlesDataSource,
+    this._localArticleMapper,
+  );
 
   @override
-  Stream<Either<Failure, ArticlesModel>> getSortedArticles(
-      String query, String to, String from, int page) async* {
+  Stream<Either<Failure, List<ArticleModel>>> getArticles(Params params) {
+    return _buildArticlesStream(params).shareReplay(maxSize: 1);
+  }
+
+  Stream<Either<Failure, List<ArticleModel>>> _buildArticlesStream(
+      Params params) async* {
     try {
-      Logger.debug('Starting article fetch process', tag: 'Repository');
+      // First, check if we have data for the specific page locally
+      final localPageData = await _getLocalPageData(params);
 
-      // Fetch local articles as a stream
-      final localArticlesStream = _fetchLocalArticles(to, from, page);
-
-      await for (final localArticles in localArticlesStream) {
-        // If local articles exist, sort and yield them
-        if (localArticles.isNotEmpty) {
-          Logger.debug('Found ${localArticles.length} local articles',
-              tag: 'Repository');
-          final sortedInOrderArticles = circularSort(localArticles);
-          yield right(await _createArticlesModel(sortedInOrderArticles));
-          return; // Stop further processing since we found local articles
-        }
-
-        // No local articles, try to fetch from remote
-        Logger.debug('No local articles found, attempting remote fetch',
-            tag: 'Repository');
-
-        try {
-          // Attempt remote fetch without pre-checking internet
-          final ArticlesModel articlesModel =
-              await _fetchRemoteArticles(query, from, to, page);
-          final List<ArticleModel> articles =
-              _addQueryToArticles(articlesModel);
-          await _saveArticles(articles);
-
-          Logger.debug(
-              'Remote fetch successful, yielding ${articles.length} articles',
-              tag: 'Repository');
-          yield right(articlesModel);
-          return;
-        } on NoInternetConnectionException {
-          Logger.error('No internet connection confirmed during remote fetch',
-              tag: 'Repository');
-          yield left(Failure.noInternetConnectionError);
-          return;
-        } on RestApiException catch (e) {
-          Logger.error('API error during remote fetch: ${e.errorCode}',
-              tag: 'Repository');
-          yield left(_handleApiException(e));
-          return;
-        } catch (e) {
-          Logger.error('Unexpected error during remote fetch: $e',
-              tag: 'Repository');
-          yield left(Failure.unknownError);
-          return;
-        }
+      if (localPageData.isNotEmpty) {
+        Logger.debug(
+            "Loaded ${localPageData.length} articles for page ${params.page} from DB");
+        Logger.debug(
+            "Before circular sort: ${localPageData.map((e) => e.queryTitle).join(", ")}");
+        final models = _localArticleMapper.mapToArticleModelList(localPageData);
+        final sorted = _circularSortArticles(models);
+        Logger.debug(
+            "After circular sort: ${sorted.map((e) => e.queryTitle).join(", ")}");
+        yield right(sorted);
+        return;
       }
-    } on NoInternetConnectionException {
-      Logger.error('No internet connection exception in main flow',
-          tag: 'Repository');
-      yield left(Failure.noInternetConnectionError);
-    } on RestApiException catch (e) {
-      Logger.error('RestApiException in main flow: ${e.errorCode}',
-          tag: 'Repository');
-      yield left(_handleApiException(e));
+
+      // If no local data for this page, fetch from remote APIs
+      try {
+        final allArticles = <ArticleModel>[];
+
+        // Make separate API calls for each company
+        final companies = ["Microsoft", "Apple", "Google", "Tesla"];
+
+        for (final company in companies) {
+          try {
+            final remote = await _remoteArticlesDataSource.getArticles(
+                query: company,
+                from: params.from,
+                to: params.to,
+                page: params.page,
+                pageSize: params.pageSize ~/ companies.length);
+
+            Logger.debug(
+                "Loaded ${remote.articles?.length ?? 0} articles for $company from remote API");
+
+            final model = _remoteArticleMapper.mapToArticlesModel(remote);
+
+            // Assign the company name to each article
+            for (final article in model.articles) {
+              article.queryTitle = company;
+            }
+
+            allArticles.addAll(model.articles);
+          } catch (e) {
+            Logger.debug("Failed to fetch articles for $company: $e");
+            // Continue with other companies even if one fails
+          }
+        }
+
+        if (allArticles.isNotEmpty) {
+          Logger.debug(
+              "[ArticlesRepository] Saving ${allArticles.length} total articles to DB");
+          Logger.debug(
+              "[ArticlesRepository] Articles by company: ${allArticles.map((e) => e.queryTitle).join(", ")}");
+
+          // Apply circular sort to remote articles before saving and returning
+          final sortedArticles = _circularSortArticles(allArticles);
+          Logger.debug(
+              "[ArticlesRepository] After circular sort: ${sortedArticles.map((e) => e.queryTitle).join(", ")}");
+          await _saveArticles(sortedArticles);
+
+          // Create final model with merged results
+          final mergedModel = ArticlesModel(
+            articles: sortedArticles,
+            totalResults: sortedArticles.length,
+          );
+
+          yield right(mergedModel.articles);
+        } else {
+          yield left(Failure.unknownError);
+        }
+      } on NoInternetConnectionException {
+        yield left(Failure.noInternetConnectionError);
+      } catch (e) {
+        yield left(Failure.unknownError);
+      }
     } catch (e) {
-      Logger.error('Unexpected error in main flow: $e', tag: 'Repository');
       yield left(Failure.unknownError);
     }
   }
 
-  Stream<List<ArticleEntity>> _fetchLocalArticles(
-      String to, String from, int page) {
-    return _localArticlesDataSource.getArticlesWithPaging(
-        to, from, page, Constants.articlesPageLimit);
-  }
+  Future<List<ArticleEntity>> _getLocalPageData(Params params) async {
+    try {
+      // Check if we have any data for the specific page locally
+      // Since we're fetching multiple companies, we need to check if we have enough data
+      // to satisfy the requested page size
+      final companies = ["Microsoft", "Apple", "Google", "Tesla"];
+      final allLocalArticles = <ArticleEntity>[];
 
-  Future<ArticlesModel> _fetchRemoteArticles(
-      String query, String from, String to, int page) async {
-    final response =
-        await _remoteArticlesDataSource.getArticles(query, from, to, page);
-    return _remoteArticleMapper.mapToArticlesModel(response);
-  }
-
-  List<ArticleModel> _addQueryToArticles(ArticlesModel articlesModel) {
-    final List<String> queries = ["Microsoft", "Apple", "Google", "Tesla"];
-
-    return articlesModel.articles.where((article) {
-      for (var query in queries) {
-        if (article.title.contains(query) ||
-            article.description.contains(query) ||
-            article.content.contains(query)) {
-          article.queryTitle = query;
-          return true;
-        }
+      for (final company in companies) {
+        final companyArticles =
+            await _localArticlesDataSource.getArticlesWithPagingAndQuery(
+                company,
+                params.to,
+                params.from,
+                params.page,
+                params.pageSize ~/ companies.length);
+        allLocalArticles.addAll(companyArticles);
       }
-      return false;
-    }).toList();
+
+      // If we have enough articles for this page, return them
+      if (allLocalArticles.length >= params.pageSize) {
+        return allLocalArticles;
+      }
+
+      // If we don't have enough articles, return empty list to trigger remote fetch
+      return [];
+    } catch (e) {
+      Logger.debug("Error checking local page data: $e");
+      return [];
+    }
   }
 
   Future<void> _saveArticles(List<ArticleModel> articles) async {
-    final List<ArticleEntity> entities =
-        _localArticleMapper.mapToArticleEntityList(articles);
+    final entities = _localArticleMapper.mapToArticleEntityList(articles);
     await _localArticlesDataSource.saveAllArticles(entities);
   }
 
-  List<ArticleEntity> circularSort(List<ArticleEntity> items) {
-    // Define the order
-    final List<String> order = ['Microsoft', 'Apple', 'Google', 'Tesla'];
+  /// Circular sort that distributes articles in round-robin fashion by company name
+  /// Example: Microsoft, Apple, Google, Tesla, Microsoft, Apple, Google, Tesla...
+  List<ArticleModel> _circularSortArticles(List<ArticleModel> items) {
+    final order = ['Microsoft', 'Apple', 'Google', 'Tesla'];
+    final buckets = {for (var o in order) o: <ArticleModel>[]};
 
-    // Create a map to hold buckets for each category
-    final Map<String, List<ArticleEntity>> buckets = {
-      'Microsoft': [],
-      'Apple': [],
-      'Google': [],
-      'Tesla': [],
-    };
-
-    // Separate items into buckets
+    // Group articles by company
     for (var item in items) {
       if (buckets.containsKey(item.queryTitle)) {
         buckets[item.queryTitle]!.add(item);
       }
     }
 
-    // Combine buckets in circular order
-    List<ArticleEntity> sortedItems = [];
-    int maxLength = items.length;
-    int index = 0;
+    final sorted = <ArticleModel>[];
+    int i = 0;
+    int maxIterations = items.length * order.length; // Prevent infinite loop
+    int iterations = 0;
 
-    while (sortedItems.length < maxLength) {
-      String category = order[index % order.length];
-      if (buckets[category]!.isNotEmpty) {
-        sortedItems.add(buckets[category]!.removeAt(0));
+    // Round-robin distribution: take one article from each company in order
+    while (sorted.length < items.length && iterations < maxIterations) {
+      final cat = order[i % order.length];
+      if (buckets[cat]!.isNotEmpty) {
+        sorted.add(buckets[cat]!.removeAt(0));
       }
-      index++;
+      i++;
+      iterations++;
     }
-    return sortedItems;
-  }
 
-  // offline data is valid for 10 minutes, after that is stale
-  bool isLocalDataStale(List<ArticleEntity> localArticles) {
-    if (localArticles.isEmpty) {
-      return false;
+    // Add any remaining items that weren't sorted (fallback)
+    for (var bucket in buckets.values) {
+      sorted.addAll(bucket);
     }
-    final DateTime latestPublishedAt = localArticles
-        .map((article) => DateTime.parse(article.publishedAt))
-        .reduce((a, b) => a.isAfter(b) ? a : b);
 
-    final DateTime staleThreshold =
-        DateTime.now().subtract(const Duration(minutes: 10));
-    return latestPublishedAt.isBefore(staleThreshold);
-  }
-
-  Future<ArticlesModel> _createArticlesModel(
-      List<ArticleEntity> articles) async {
-    final int totalResults =
-        await _localArticlesDataSource.getArticlesCount() ?? 0;
-    final List<ArticleModel> articleModelList =
-        _localArticleMapper.mapToArticleModelList(articles);
-    return ArticlesModel(
-        articles: articleModelList, totalResults: totalResults);
-  }
-
-  Failure _handleApiException(RestApiException e) {
-    if (e.errorCode != null) {
-      if (e.errorCode! >= RestApiError.fromServerError &&
-          e.errorCode! <= RestApiError.toServerError) {
-        return Failure.serverError;
-      }
-      return Failure.unknownError;
-    }
-    return Failure.unknownError;
+    return sorted;
   }
 }

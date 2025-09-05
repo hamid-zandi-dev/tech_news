@@ -9,11 +9,6 @@ class LocalArticlesDataSourceImpl implements LocalArticlesDataSource {
   LocalArticlesDataSourceImpl(this._articleDao);
 
   @override
-  Future<List<ArticleEntity>> getAllArticles(String to, String from) {
-    return _articleDao.getAllArticles(to, from);
-  }
-
-  @override
   Future<ArticleEntity?> getArticleById(String articleId) {
     return _articleDao.getArticleById(articleId);
   }
@@ -26,6 +21,11 @@ class LocalArticlesDataSourceImpl implements LocalArticlesDataSource {
   @override
   Future<List<ArticleEntity>> getArticlesWithTitle(String title, String to, String from) {
     return _articleDao.getArticlesWithTitle(title, to, from);
+  }
+
+  @override
+  Stream<List<ArticleEntity>> getAllArticles() {
+    return _articleDao.getAllArticles();
   }
 
   @override
