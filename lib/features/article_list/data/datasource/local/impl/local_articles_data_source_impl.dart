@@ -1,4 +1,3 @@
-import 'package:floor/floor.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/entity/article_entity.dart';
 
 import '../abstraction/local_articles_data_source.dart';

@@ -20,7 +20,8 @@ class ArticleListScreen extends StatefulWidget {
   State<ArticleListScreen> createState() => _ArticleListScreenState();
 }
 
-class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKeepAliveClientMixin<ArticleListScreen> {
+class _ArticleListScreenState extends State<ArticleListScreen>
+    with AutomaticKeepAliveClientMixin<ArticleListScreen> {
   List<ArticleModel> list = [];
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = true;
@@ -30,7 +31,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
   Widget build(BuildContext context) {
     super.build(context);
     _appColor = Theme.of(context).extension<AppColor>()!;
-    return _createFavoriteRecipesResultWidget();
+    return _createArticleListResultWidget();
   }
 
   @override
@@ -62,13 +63,15 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
 
   void setOnScrollChangeListener() {
     _scrollController.addListener(() {
-      if (!_isLoading && _scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      if (!_isLoading &&
+          _scrollController.position.pixels >=
+              _scrollController.position.maxScrollExtent - 200) {
         callGetArticleListEvent();
       }
     });
   }
 
-  _createFavoriteRecipesResultWidget() {
+  _createArticleListResultWidget() {
     return BlocBuilder<ArticleListBloc, ArticleListState>(
       buildWhen: (previous, current) {
         if (current is GetArticleListState) {
@@ -83,29 +86,28 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
           if (state.articleListStatus is ArticleListLoadingStatus) {
             _isLoading = true;
             widget = _createLoadingWidget();
-          }
-          else if (state.articleListStatus is ArticleListEmptyStatus) {
+          } else if (state.articleListStatus is ArticleListEmptyStatus) {
             _isLoading = false;
             widget = _createEmptyWidget();
-          }
-          else if (state.articleListStatus is ArticleListLoadingMoreStatus) {
+          } else if (state.articleListStatus is ArticleListLoadingMoreStatus) {
             _isLoading = true;
             widget = _createLoadedWidget(list);
             isLoadingMore = true;
-          }
-          else if (state.articleListStatus is ArticleListLoadedStatus) {
-            ArticleListLoadedStatus loadedStatus = state.articleListStatus as ArticleListLoadedStatus;
+          } else if (state.articleListStatus is ArticleListLoadedStatus) {
+            ArticleListLoadedStatus loadedStatus =
+                state.articleListStatus as ArticleListLoadedStatus;
             list = loadedStatus.list;
             _isLoading = false;
             widget = _createLoadedWidget(list);
             _callManualLoadingMoreItems();
-          }
-          else if (state.articleListStatus is ArticleListErrorStatus) {
-            ArticleListErrorStatus favoriteRecipesErrorStatus = state.articleListStatus as ArticleListErrorStatus;
+          } else if (state.articleListStatus is ArticleListErrorStatus) {
+            ArticleListErrorStatus favoriteRecipesErrorStatus =
+                state.articleListStatus as ArticleListErrorStatus;
             _isLoading = false;
-            widget = _createErrorHandlingWidget(favoriteRecipesErrorStatus.failure);
-          }
-          else if (state.articleListStatus is ArticleListLoadedMoreErrorStatus) {
+            widget =
+                _createErrorHandlingWidget(favoriteRecipesErrorStatus.failure);
+          } else if (state.articleListStatus
+              is ArticleListLoadedMoreErrorStatus) {
             _isLoading = false;
             widget = _createLoadedWidget(list);
           }
@@ -113,9 +115,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
             children: [
               Expanded(child: widget),
               Visibility(
-                  visible: isLoadingMore,
-                  child: _createLoadMoreIndicator()
-              )
+                  visible: isLoadingMore, child: _createLoadMoreIndicator())
             ],
           );
         }
@@ -130,23 +130,20 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
 
   Widget _createLoadingWidget() {
     return Center(
-      child: CircularProgressBarWidget(
-          color: _appColor.primaryColor),
+      child: CircularProgressBarWidget(color: _appColor.primaryColor),
     );
   }
 
   Widget _createLoadMoreIndicator() {
     return Padding(
       padding: const EdgeInsets.all(8),
-      child: CircularProgressBarWidget(
-          color: _appColor.primaryColor
-      ),
+      child: CircularProgressBarWidget(color: _appColor.primaryColor),
     );
   }
 
   Widget _createErrorHandlingWidget(Failure failure) {
     return _createNonScrollableRefreshIndicatorWidget(
-      widget: ErrorHandlingFactoryWidget(context, failure, onClickListener:(){
+      widget: ErrorHandlingFactoryWidget(context, failure, onClickListener: () {
         refreshScreen();
       }),
     );
@@ -182,14 +179,12 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
   }
 
   void _handleArticleClickListener(int? articleId) {
-    if(articleId == null) {
+    if (articleId == null) {
       return;
     }
-    Navigator.of(context, rootNavigator: true).pushNamed(AppRoutes.articleDetailsRoute,
-        arguments: {
-          ArticleDetailsScreen.articleId: articleId
-        }
-    );
+    Navigator.of(context, rootNavigator: true).pushNamed(
+        AppRoutes.articleDetailsRoute,
+        arguments: {ArticleDetailsScreen.articleId: articleId});
   }
 
   @override
@@ -200,8 +195,7 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
         onRefresh: () async {
           refreshScreen();
         },
-        child: widget
-    );
+        child: widget);
   }
 
   /// call loading more if height of list not reached to the bottom of screen.
@@ -209,7 +203,9 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
   void _callManualLoadingMoreItems() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        if (_scrollController.position.maxScrollExtent <= 0) {
+        // Only load more if the list is small enough to fit on screen
+        // and we're not already loading
+        if (_scrollController.position.maxScrollExtent <= 0 && !_isLoading) {
           callGetArticleListEvent();
         }
       }
@@ -221,6 +217,4 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
     _scrollController.dispose();
     super.dispose();
   }
-
 }
-

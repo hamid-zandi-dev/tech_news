@@ -44,7 +44,8 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
 
   Future<void> _handleGetArticleListEvent(
       Emitter<ArticleListState> emit) async {
-    Logger.debug('Fetching articles for page $_pageNumber',
+    Logger.debug(
+        'Fetching articles for page $_pageNumber, total pages: $_totalPage, current articles: ${_articleListModel.length}',
         tag: 'ArticleListBloc');
 
     if (_pageNumber <= _totalPage) {
@@ -66,25 +67,44 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
         onError: (_, __) =>
             GetArticleListState(ArticleListErrorStatus(Failure.unknownError)),
       );
+    } else {
+      Logger.debug(
+          'No more pages to load. Current page: $_pageNumber, Total pages: $_totalPage',
+          tag: 'ArticleListBloc');
     }
   }
 
   ArticleListState _handleFailureResponse(Failure failure) {
     Logger.error('Article fetch failed: ${failure.toString()}',
         tag: 'ArticleListBloc');
+
+    // If we have existing articles and this is a pagination request,
+    // return loaded more error status instead of full error
+    if (_articleListModel.isNotEmpty) {
+      return GetArticleListState(ArticleListLoadedMoreErrorStatus());
+    }
+
     return GetArticleListState(ArticleListErrorStatus(failure));
   }
 
   GetArticleListState _handleSuccessResponse(ArticlesModel articlesModel) {
     Logger.debug(
-        'Articles fetched successfully: ${articlesModel.articles.length} articles',
+        'Articles fetched successfully: ${articlesModel.articles.length} articles, total results: ${articlesModel.totalResults}',
         tag: 'ArticleListBloc');
 
     _articleListModel.addAll(articlesModel.articles);
     ArticleListLoadedStatus loadedStatus =
-        ArticleListLoadedStatus(articlesModel.articles);
+        ArticleListLoadedStatus(_articleListModel);
     _totalPage = Utils.getTotalPages(
         articlesModel.totalResults as int, Constants.articlesPageLimit);
+
+    // Increment page number for next pagination
+    _pageNumber++;
+
+    Logger.debug(
+        'Updated state - Page: $_pageNumber, Total Pages: $_totalPage, Total Articles: ${_articleListModel.length}',
+        tag: 'ArticleListBloc');
+
     if (loadedStatus.list.isEmpty) {
       return GetArticleListState(ArticleListEmptyStatus());
     } else {
