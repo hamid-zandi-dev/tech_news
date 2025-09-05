@@ -44,11 +44,9 @@ void provideSharedPreferencesManager(SharedPreferences sharedPreferences) {
 }
 
 void provideDio() {
-  // Register as singleton to ensure the same instance with interceptors is used
   locator.registerSingleton<Dio>(() {
     final dio = Dio(locator<BaseOptions>());
 
-    // Add pretty_dio_logger interceptor for beautiful HTTP request/response logging
     dio.interceptors.add(PrettyDioLogger(
       requestHeader: true,
       requestBody: true,

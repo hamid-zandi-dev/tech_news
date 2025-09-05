@@ -24,15 +24,11 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
   String _from = "";
 
   ArticleListBloc(this._getArticlesUsecase) : super(InitialState()) {
-    DateTime now = DateTime.now();
-    DateFormat dateFormat = DateFormat("yyyy-MM-ddThh:mm:ss");
-    _to = dateFormat.format(now);
-    _from = dateFormat.format(now.subtract(const Duration(days: 2)));
     on<PageToInitial>((event, emit) => _handlePageToInitial(emit));
     on<GetArticleListEvent>((event, emit) => _handleGetArticleListEvent(emit));
   }
 
-  void _handlePageToInitial(Emitter<ArticleListState> emit) {
+  _handlePageToInitial(Emitter<ArticleListState> emit) {
     _pageNumber = 1;
     _totalPage = 1;
     DateTime now = DateTime.now();
@@ -42,8 +38,7 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
     emit(InitialState());
   }
 
-  Future<void> _handleGetArticleListEvent(
-      Emitter<ArticleListState> emit) async {
+  Future _handleGetArticleListEvent(Emitter<ArticleListState> emit) async {
     Logger.debug(
         'Fetching articles for page $_pageNumber, total pages: $_totalPage, current articles: ${_articleListModel.length}',
         tag: 'ArticleListBloc');
