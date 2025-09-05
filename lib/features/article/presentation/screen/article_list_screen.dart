@@ -124,7 +124,7 @@ class _ArticleListScreenState extends State<ArticleListScreen>
   }
 
   Widget _createEmptyWidget() {
-    return _createErrorHandlingWidget(NoDataFoundFailure(
+    return _createErrorHandlingWidget(const NoDataFoundFailure(
       message: 'No articles found',
       code: 'NO_DATA_FOUND',
     ));

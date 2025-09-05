@@ -6,7 +6,8 @@ import 'package:tech_news/core/theme/theme_manager.dart';
 import 'package:tech_news/core/utils/constants.dart';
 import 'package:tech_news/core/utils/utils.dart';
 
-class ArticleDetailsToolbarWidget extends StatefulWidget implements PreferredSizeWidget{
+class ArticleDetailsToolbarWidget extends StatefulWidget
+    implements PreferredSizeWidget {
   final String title;
   final String image;
   final Function()? onBackButtonClickListener;
@@ -21,20 +22,22 @@ class ArticleDetailsToolbarWidget extends StatefulWidget implements PreferredSiz
   });
 
   @override
-  State<ArticleDetailsToolbarWidget> createState() => _ArticleDetailsToolbarWidgetState();
+  State<ArticleDetailsToolbarWidget> createState() =>
+      _ArticleDetailsToolbarWidgetState();
 
   @override
   Size get preferredSize => Size.fromHeight(AppBar().preferredSize.height);
 }
 
-class _ArticleDetailsToolbarWidgetState extends State<ArticleDetailsToolbarWidget> {
+class _ArticleDetailsToolbarWidgetState
+    extends State<ArticleDetailsToolbarWidget> {
   double height = 0;
   late AppColor _appColor;
 
   @override
   Widget build(BuildContext context) {
     _appColor = Theme.of(context).extension<AppColor>()!;
-    height = (Utils.getWidth(context) * 3 ) / 4;
+    height = (Utils.getWidth(context) * 3) / 4;
     return SliverAppBar(
       pinned: true,
       snap: false,
@@ -76,7 +79,8 @@ class _ArticleDetailsToolbarWidgetState extends State<ArticleDetailsToolbarWidge
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     widget.title,
-                    style: TextStyle(color: _appColor.tintOnPrimaryColor, fontSize: 16),
+                    style: TextStyle(
+                        color: _appColor.tintOnPrimaryColor, fontSize: 16),
                   ),
                 ),
             ],
@@ -88,9 +92,9 @@ class _ArticleDetailsToolbarWidgetState extends State<ArticleDetailsToolbarWidge
   }
 
   Widget _createToolbarBackground() {
-    if(widget.image.isEmpty){
+    if (widget.image.isEmpty) {
       return _createRecipeHolderWidget();
-    }else {
+    } else {
       return CachedNetworkImage(
         imageUrl: widget.image,
         imageBuilder: (context, imageProvider) =>
@@ -103,7 +107,7 @@ class _ArticleDetailsToolbarWidgetState extends State<ArticleDetailsToolbarWidge
 
   Widget _createLoadedNetworkImageWidget(ImageProvider<Object> imageProvider) {
     return AspectRatio(
-      aspectRatio: 4/3,
+      aspectRatio: 4 / 3,
       child: Image(
         image: imageProvider,
         fit: BoxFit.cover,
@@ -113,17 +117,20 @@ class _ArticleDetailsToolbarWidgetState extends State<ArticleDetailsToolbarWidge
 
   Widget _createRecipeHolderWidget() {
     return AspectRatio(
-      aspectRatio: 4/3,
-      child: Center(
-        child: LayoutBuilder(
-          builder: (BuildContext context, BoxConstraints boxConstraints) {
-            return SvgPicture.asset(
-              width: boxConstraints.biggest.height / 2,
-              height: boxConstraints.biggest.height / 2,
-              fit: BoxFit.cover,
-              ImagesPath.articlePlaceHolder,
-            );
-          },
+      aspectRatio: 4 / 3,
+      child: Container(
+        color: _appColor.placeHolderBackgroundColor,
+        child: Center(
+          child: LayoutBuilder(
+            builder: (BuildContext context, BoxConstraints boxConstraints) {
+              return SvgPicture.asset(
+                width: boxConstraints.biggest.height / 2,
+                height: boxConstraints.biggest.height / 2,
+                fit: BoxFit.cover,
+                ImagesPath.articlePlaceHolder,
+              );
+            },
+          ),
         ),
       ),
     );
@@ -143,5 +150,4 @@ class _ArticleDetailsToolbarWidgetState extends State<ArticleDetailsToolbarWidge
       },
     );
   }
-
 }
