@@ -3,17 +3,16 @@ import 'package:tech_news/core/error_handling/custom_exception.dart';
 import 'package:tech_news/core/error_handling/failure.dart';
 import 'package:tech_news/core/utils/constants.dart';
 import 'package:tech_news/core/utils/utils.dart';
+import 'package:tech_news/features/article_list/data/datasource/local/abstraction/local_articles_data_source.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/entity/article_entity.dart';
 import 'package:tech_news/features/article_list/data/datasource/local/mapper/local_article_mapper.dart';
 import 'package:tech_news/features/article_list/data/datasource/remote/abstraction/remote_articles_data_source.dart';
+import 'package:tech_news/features/article_list/data/datasource/remote/mapper/remote_article_mapper.dart';
 import 'package:tech_news/features/article_list/domain/model/article_model.dart';
 import 'package:tech_news/features/article_list/domain/model/articles_model.dart';
 import 'package:tech_news/features/article_list/domain/repository/articles_repository.dart';
-import '../datasource/local/abstraction/local_articles_data_source.dart';
-import '../datasource/remote/mapper/remote_article_mapper.dart';
 
 class ArticlesRepositoryImpl extends ArticlesRepository {
-
   final LocalArticleMapper _localArticleMapper;
   final RemoteArticleMapper _remoteArticleMapper;
   final RemoteArticlesDataSource _remoteArticlesDataSource;
@@ -26,46 +25,82 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
       this._localArticleMapper);
 
   @override
-  Stream<Either<Failure, ArticlesModel>> getSortedArticles(String query, String to, String from, int page) async* {
+  Stream<Either<Failure, ArticlesModel>> getSortedArticles(
+      String query, String to, String from, int page) async* {
     try {
-      bool isConnected = await Utils.checkInternet();
+      Logger.debug('Starting article fetch process', tag: 'Repository');
 
       // Fetch local articles as a stream
       final localArticlesStream = _fetchLocalArticles(to, from, page);
 
       await for (final localArticles in localArticlesStream) {
         // If local articles exist, sort and yield them
-        if(localArticles.isNotEmpty) {
+        if (localArticles.isNotEmpty) {
+          Logger.debug('Found ${localArticles.length} local articles',
+              tag: 'Repository');
           final sortedInOrderArticles = circularSort(localArticles);
           yield right(await _createArticlesModel(sortedInOrderArticles));
           return; // Stop further processing since we found local articles
         }
-        if(isConnected) {
-          // Then fetch remote data and update local storage
-          final ArticlesModel articlesModel = await _fetchRemoteArticles(query, from, to, page);
-          final List<ArticleModel> articles = _addQueryToArticles(articlesModel);
+
+        // No local articles, try to fetch from remote
+        Logger.debug('No local articles found, attempting remote fetch',
+            tag: 'Repository');
+
+        try {
+          // Attempt remote fetch without pre-checking internet
+          final ArticlesModel articlesModel =
+              await _fetchRemoteArticles(query, from, to, page);
+          final List<ArticleModel> articles =
+              _addQueryToArticles(articlesModel);
           await _saveArticles(articles);
-        } else {
-          // No local articles and no internet connection
-          throw NoInternetConnectionException();
+
+          Logger.debug(
+              'Remote fetch successful, yielding ${articles.length} articles',
+              tag: 'Repository');
+          yield right(articlesModel);
+          return;
+        } on NoInternetConnectionException {
+          Logger.error('No internet connection confirmed during remote fetch',
+              tag: 'Repository');
+          yield left(Failure.noInternetConnectionError);
+          return;
+        } on RestApiException catch (e) {
+          Logger.error('API error during remote fetch: ${e.errorCode}',
+              tag: 'Repository');
+          yield left(_handleApiException(e));
+          return;
+        } catch (e) {
+          Logger.error('Unexpected error during remote fetch: $e',
+              tag: 'Repository');
+          yield left(Failure.unknownError);
+          return;
         }
       }
-
     } on NoInternetConnectionException {
+      Logger.error('No internet connection exception in main flow',
+          tag: 'Repository');
       yield left(Failure.noInternetConnectionError);
     } on RestApiException catch (e) {
+      Logger.error('RestApiException in main flow: ${e.errorCode}',
+          tag: 'Repository');
       yield left(_handleApiException(e));
     } catch (e) {
+      Logger.error('Unexpected error in main flow: $e', tag: 'Repository');
       yield left(Failure.unknownError);
     }
   }
 
-  Stream<List<ArticleEntity>> _fetchLocalArticles(String to, String from, int page) {
-    return _localArticlesDataSource.getArticlesWithPaging(to, from, page, Constants.articlesPageLimit);
+  Stream<List<ArticleEntity>> _fetchLocalArticles(
+      String to, String from, int page) {
+    return _localArticlesDataSource.getArticlesWithPaging(
+        to, from, page, Constants.articlesPageLimit);
   }
 
-  Future<ArticlesModel> _fetchRemoteArticles(String query, String from, String to, int page) async {
-    final response = await _remoteArticlesDataSource.getArticles(query, from, to, page);
+  Future<ArticlesModel> _fetchRemoteArticles(
+      String query, String from, String to, int page) async {
+    final response =
+        await _remoteArticlesDataSource.getArticles(query, from, to, page);
     return _remoteArticleMapper.mapToArticlesModel(response);
   }
 
@@ -86,7 +121,8 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
   }
 
   Future<void> _saveArticles(List<ArticleModel> articles) async {
-    final List<ArticleEntity> entities = _localArticleMapper.mapToArticleEntityList(articles);
+    final List<ArticleEntity> entities =
+        _localArticleMapper.mapToArticleEntityList(articles);
     await _localArticlesDataSource.saveAllArticles(entities);
   }
 
@@ -121,31 +157,37 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
       }
       index++;
     }
-     return sortedItems;
+    return sortedItems;
   }
 
   // offline data is valid for 10 minutes, after that is stale
   bool isLocalDataStale(List<ArticleEntity> localArticles) {
-    if(localArticles.isEmpty){
+    if (localArticles.isEmpty) {
       return false;
     }
     final DateTime latestPublishedAt = localArticles
         .map((article) => DateTime.parse(article.publishedAt))
         .reduce((a, b) => a.isAfter(b) ? a : b);
 
-    final DateTime staleThreshold = DateTime.now().subtract(const Duration(minutes: 10));
+    final DateTime staleThreshold =
+        DateTime.now().subtract(const Duration(minutes: 10));
     return latestPublishedAt.isBefore(staleThreshold);
   }
 
-  Future<ArticlesModel> _createArticlesModel(List<ArticleEntity> articles) async {
-    final int totalResults = await _localArticlesDataSource.getArticlesCount() ?? 0;
-    final List<ArticleModel> articleModelList = _localArticleMapper.mapToArticleModelList(articles);
-    return ArticlesModel(articles: articleModelList, totalResults: totalResults);
+  Future<ArticlesModel> _createArticlesModel(
+      List<ArticleEntity> articles) async {
+    final int totalResults =
+        await _localArticlesDataSource.getArticlesCount() ?? 0;
+    final List<ArticleModel> articleModelList =
+        _localArticleMapper.mapToArticleModelList(articles);
+    return ArticlesModel(
+        articles: articleModelList, totalResults: totalResults);
   }
 
   Failure _handleApiException(RestApiException e) {
     if (e.errorCode != null) {
-      if (e.errorCode! >= RestApiError.fromServerError && e.errorCode! <= RestApiError.toServerError) {
+      if (e.errorCode! >= RestApiError.fromServerError &&
+          e.errorCode! <= RestApiError.toServerError) {
         return Failure.serverError;
       }
       return Failure.unknownError;

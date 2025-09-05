@@ -8,5 +8,3 @@ class GetArticleListState extends ArticleListState {
   ArticleListStatus articleListStatus;
   GetArticleListState(this.articleListStatus);
 }
-
-

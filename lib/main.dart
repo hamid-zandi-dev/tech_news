@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:tech_news/features/article_details/presentation/screen/article_details_screen.dart';
@@ -18,20 +19,21 @@ ThemeType themeType = ThemeType.light;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Enable logging
+  Logger.log('App starting', tag: 'Main');
+
+  // Test logging functionality
+  Logger.debug('Debug logging is working', tag: 'Main');
+  Logger.error('Error logging is working', tag: 'Main');
+
   await dotenv.load(fileName: ".env");
   await setupInjection();
   _setupThemeManager();
+
+  Logger.log('App initialization completed', tag: 'Main');
+
   runApp(const MyApp());
-  // final appDatabase = await $FloorAppDatabase
-  //     .databaseBuilder("app_database.db").build();
-  // runApp(
-  //   ProviderScope(
-  //     overrides: [
-  //       databaseProvider.overrideWithValue(appDatabase),
-  //     ],
-  //     child: const MyApp(),
-  //   ),
-  // );
 }
 
 void _setupThemeManager() {
@@ -45,12 +47,12 @@ void _setupThemeManager() {
 }
 
 ThemeType _getCurrentTheme() {
-  String currentThemeName = sharedPreferencesManager.getCurrentTheme() ?? ThemeType.light.name;
+  String currentThemeName =
+      sharedPreferencesManager.getCurrentTheme() ?? ThemeType.light.name;
   ThemeType themeType;
   try {
     themeType = Utils.getThemeByName(currentThemeName);
-  }
-  catch (e) {
+  } catch (e) {
     themeType = ThemeType.light;
   }
   return themeType;
@@ -60,8 +62,7 @@ String _getFont(String locale) {
   String font = FontFamily.iranSans.font;
   if (locale == Locales.persianLocale.locale) {
     font = FontFamily.iranSans.font;
-  }
-  else {
+  } else {
     font = FontFamily.openSans.font;
   }
   return font;
@@ -79,12 +80,38 @@ class MyApp extends StatelessWidget {
       theme: _themeManager.getTheme(_getCurrentTheme()),
       routes: {
         AppRoutes.articleListRoute: (context) => BlocProvider(
-          create: (context) => locator<ArticleListBloc>(),
-          child: const ArticleListScreen(),
-        ),
-        AppRoutes.articleDetailsRoute: (context)=> const ArticleDetailsScreen(),
+              create: (context) => locator<ArticleListBloc>(),
+              child: const ArticleListScreen(),
+            ),
+        AppRoutes.articleDetailsRoute: (context) =>
+            const ArticleDetailsScreen(),
       },
       locale: Locale(Locales.englishLocale.locale),
+      builder: (context, child) {
+        // Add network status indicator in debug mode
+        if (kDebugMode) {
+          return FutureBuilder<bool>(
+            future: Utils.quickNetworkCheck(),
+            builder: (context, snapshot) {
+              final hasInternet = snapshot.data ?? false;
+              final status = hasInternet ? '🟢' : '🔴';
+              Logger.debug(
+                  'Network status: ${hasInternet ? 'Connected' : 'Disconnected'}',
+                  tag: 'Main');
+
+              return Scaffold(
+                appBar: AppBar(
+                  title: Text('Tech News $status'),
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                ),
+                body: child!,
+              );
+            },
+          );
+        }
+        return child!;
+      },
     );
   }
 }

@@ -4,7 +4,6 @@ import 'package:tech_news/features/article_list/data/datasource/remote/dto/artic
 import 'package:tech_news/features/article_list/domain/model/article_model.dart';
 import 'package:tech_news/features/article_list/domain/model/article_source_model.dart';
 import 'package:tech_news/features/article_list/domain/model/articles_model.dart';
-import 'package:uuid/uuid.dart';
 
 import '../dto/article_source_dto.dart';
 

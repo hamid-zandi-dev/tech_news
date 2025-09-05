@@ -3,6 +3,11 @@ allprojects {
         google()
         mavenCentral()
     }
+    
+    // Suppress Java 8 obsolete warnings for all subprojects
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << '-Xlint:-options'
+    }
 }
 
 rootProject.buildDir = "../build"

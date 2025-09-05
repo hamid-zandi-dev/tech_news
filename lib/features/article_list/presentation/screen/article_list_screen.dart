@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tech_news/core/di/locator.dart';
 import 'package:tech_news/core/error_handling/failure.dart';
 import 'package:tech_news/core/theme/theme_manager.dart';
 import 'package:tech_news/core/utils/Constants.dart';

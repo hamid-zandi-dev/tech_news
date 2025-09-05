@@ -64,9 +64,10 @@ enum FontFamily {
 
 enum Locales {
   englishLocale("en"),
+  persianLocale("fa"),
   kurdishLocale("ku"),
-  arabicLocale("ar"),
-  persianLocale("fa");
+  arabicLocale("ar");
+
 
   final String locale;
   const Locales(this.locale);

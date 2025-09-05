@@ -42,12 +42,15 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
     emit(InitialState());
   }
 
-  Future<void> _handleGetArticleListEvent(Emitter<ArticleListState> emit) async {
+  Future<void> _handleGetArticleListEvent(
+      Emitter<ArticleListState> emit) async {
+    Logger.debug('Fetching articles for page $_pageNumber',
+        tag: 'ArticleListBloc');
+
     if (_pageNumber <= _totalPage) {
       if (_articleListModel.isEmpty) {
         emit(GetArticleListState(ArticleListLoadingStatus()));
-      }
-      else {
+      } else {
         emit(GetArticleListState(ArticleListLoadingMoreStatus()));
       }
       final resultStream = _getArticlesUsecase(
@@ -56,8 +59,8 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
         resultStream,
         onData: (result) {
           return result.fold(
-                (failure) => _handleFailureResponse(failure),
-                (success) => _handleSuccessResponse(success),
+            (failure) => _handleFailureResponse(failure),
+            (success) => _handleSuccessResponse(success),
           );
         },
         onError: (_, __) =>
@@ -67,17 +70,24 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
   }
 
   ArticleListState _handleFailureResponse(Failure failure) {
-     return GetArticleListState(ArticleListErrorStatus(failure));
+    Logger.error('Article fetch failed: ${failure.toString()}',
+        tag: 'ArticleListBloc');
+    return GetArticleListState(ArticleListErrorStatus(failure));
   }
 
   GetArticleListState _handleSuccessResponse(ArticlesModel articlesModel) {
+    Logger.debug(
+        'Articles fetched successfully: ${articlesModel.articles.length} articles',
+        tag: 'ArticleListBloc');
+
     _articleListModel.addAll(articlesModel.articles);
-    ArticleListLoadedStatus loadedStatus = ArticleListLoadedStatus(articlesModel.articles);
-    _totalPage = Utils.getTotalPages(articlesModel.totalResults as int, Constants.articlesPageLimit);
+    ArticleListLoadedStatus loadedStatus =
+        ArticleListLoadedStatus(articlesModel.articles);
+    _totalPage = Utils.getTotalPages(
+        articlesModel.totalResults as int, Constants.articlesPageLimit);
     if (loadedStatus.list.isEmpty) {
       return GetArticleListState(ArticleListEmptyStatus());
-    }
-    else {
+    } else {
       return GetArticleListState(loadedStatus);
     }
   }

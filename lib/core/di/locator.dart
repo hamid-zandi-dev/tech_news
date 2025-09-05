@@ -43,20 +43,37 @@ void provideSharedPreferencesManager(SharedPreferences sharedPreferences) {
 }
 
 void provideDio() {
-  locator.registerFactory<Dio>(() => Dio(locator()));
+  final dio = Dio(locator());
+
+  // Add logging interceptor
+  dio.interceptors.add(
+    LogInterceptor(
+      requestBody: true,
+      responseBody: true,
+      requestHeader: true,
+      responseHeader: true,
+      error: true,
+      logPrint: (object) {
+        // Use print for both debug and release modes
+        print('🌐 DIO LOG: $object');
+      },
+    ),
+  );
+
+  locator.registerFactory<Dio>(() => dio);
 }
 
 void provideDioBaseOptions() {
   BaseOptions options = BaseOptions(
       receiveDataWhenStatusError: true,
       connectTimeout: const Duration(seconds: 20),
-      receiveTimeout: const Duration(seconds: 20)
-  );
+      receiveTimeout: const Duration(seconds: 20));
   locator.registerSingleton<BaseOptions>(options);
 }
 
 Future<void> _provideDatabase() async {
-  final database = await $FloorAppDatabase.databaseBuilder('app_database.db').build();
+  final database =
+      await $FloorAppDatabase.databaseBuilder('app_database.db').build();
   if (!GetIt.instance.isRegistered<AppDatabase>()) {
     locator.registerLazySingleton(() => database);
   }
@@ -83,8 +100,8 @@ void provideLocalArticleDataSource() {
 
 void provideRemoteArticleDataSource() {
   if (!GetIt.instance.isRegistered<RemoteArticlesDataSource>()) {
-    locator.registerFactory<RemoteArticlesDataSource>(() =>
-        RemoteArticlesDataSourceImpl(locator()));
+    locator.registerFactory<RemoteArticlesDataSource>(
+        () => RemoteArticlesDataSourceImpl(locator()));
   }
 }
 
@@ -97,8 +114,8 @@ void provideArticleRepository() {
 
 void provideArticleUseCases() {
   if (!GetIt.instance.isRegistered<GetArticlesUsecase>()) {
-    locator.registerFactory<GetArticlesUsecase>(() =>
-        GetArticlesUsecase(locator()));
+    locator.registerFactory<GetArticlesUsecase>(
+        () => GetArticlesUsecase(locator()));
   }
 }
 
@@ -107,6 +124,3 @@ void provideArticleBloc() {
     locator.registerFactory<ArticleListBloc>(() => ArticleListBloc(locator()));
   }
 }
-
-
-
