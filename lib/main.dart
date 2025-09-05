@@ -3,15 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:tech_news/features/article_details/presentation/screen/article_details_screen.dart';
-import 'package:tech_news/features/article_list/presentation/screen/article_list_screen.dart';
+import 'package:tech_news/features/article/presentation/screen/article_details_screen.dart';
+import 'package:tech_news/features/article/presentation/screen/article_list_screen.dart';
 import 'core/color/colors.dart';
 import 'core/di/locator.dart';
 import 'core/theme/theme_manager.dart';
 import 'core/utils/constants.dart';
 import 'core/utils/shared_preferences_manager.dart';
 import 'core/utils/utils.dart';
-import 'features/article_list/presentation/bloc/article_list_bloc.dart';
+import 'features/article/presentation/bloc/article_list_bloc.dart';
 
 SharedPreferencesManager sharedPreferencesManager = locator();
 late ThemeManager _themeManager;

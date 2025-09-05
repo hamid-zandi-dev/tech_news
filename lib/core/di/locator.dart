@@ -3,19 +3,19 @@ import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tech_news/core/utils/shared_preferences_manager.dart';
-import 'package:tech_news/features/article_list/data/datasource/local/abstraction/local_articles_data_source.dart';
-import 'package:tech_news/features/article_list/data/datasource/local/dao/article_dao.dart';
-import 'package:tech_news/features/article_list/data/datasource/local/impl/local_articles_data_source_impl.dart';
-import 'package:tech_news/features/article_list/data/datasource/local/mapper/local_article_mapper.dart';
-import 'package:tech_news/features/article_list/data/datasource/remote/abstraction/remote_articles_data_source.dart';
-import 'package:tech_news/features/article_list/data/datasource/remote/impl/remote_articles_data_source_impl.dart';
-import 'package:tech_news/features/article_list/data/datasource/remote/mapper/remote_article_mapper.dart';
-import 'package:tech_news/features/article_list/data/repository/articles_repository_impl.dart';
-import 'package:tech_news/features/article_list/domain/repository/articles_repository.dart';
-import 'package:tech_news/features/article_list/domain/usecase/get_articles_usecase.dart';
-import 'package:tech_news/features/article_list/presentation/bloc/article_list_bloc.dart';
+import 'package:tech_news/features/article/data/datasource/local/abstraction/local_articles_data_source.dart';
+import 'package:tech_news/features/article/data/datasource/local/dao/article_dao.dart';
+import 'package:tech_news/features/article/data/datasource/local/impl/local_articles_data_source_impl.dart';
+import 'package:tech_news/features/article/data/datasource/local/mapper/local_article_mapper.dart';
+import 'package:tech_news/features/article/data/datasource/remote/abstraction/remote_articles_data_source.dart';
+import 'package:tech_news/features/article/data/datasource/remote/impl/remote_articles_data_source_impl.dart';
+import 'package:tech_news/features/article/data/datasource/remote/mapper/remote_article_mapper.dart';
+import 'package:tech_news/features/article/data/repository/articles_repository_impl.dart';
+import 'package:tech_news/features/article/domain/repository/articles_repository.dart';
+import 'package:tech_news/features/article/domain/usecase/get_articles_usecase.dart';
+import 'package:tech_news/features/article/presentation/bloc/article_list_bloc.dart';
 
-import '../../features/article_list/data/datasource/local/dao/database.dart';
+import '../../features/article/data/datasource/local/dao/database.dart';
 
 GetIt locator = GetIt.instance;
 
