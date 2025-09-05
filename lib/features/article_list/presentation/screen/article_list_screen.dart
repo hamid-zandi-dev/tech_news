@@ -30,13 +30,6 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
   @override
   Widget build(BuildContext context) {
     super.build(context);
-    return BlocProvider(
-      create: (context) => locator<ArticleListBloc>(),
-      child: _buildArticleList(),
-    );
-  }
-
-  Widget _buildArticleList() {
     _appColor = Theme.of(context).extension<AppColor>()!;
     return _createFavoriteRecipesResultWidget();
   }
@@ -44,13 +37,13 @@ class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKee
   @override
   void initState() {
     super.initState();
-    onWidgetCreated();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      onWidgetCreated();
+    });
   }
 
   void onWidgetCreated() {
-    SchedulerBinding.instance.addPostFrameCallback((_) {
-      refreshScreen();
-    });
+    refreshScreen();
     setOnScrollChangeListener();
   }
 
