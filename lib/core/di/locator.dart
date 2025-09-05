@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:pretty_dio_logger/pretty_dio_logger.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tech_news/core/utils/shared_preferences_manager.dart';
@@ -43,24 +44,23 @@ void provideSharedPreferencesManager(SharedPreferences sharedPreferences) {
 }
 
 void provideDio() {
-  final dio = Dio(locator());
+  // Register as singleton to ensure the same instance with interceptors is used
+  locator.registerSingleton<Dio>(() {
+    final dio = Dio(locator<BaseOptions>());
 
-  // Add logging interceptor
-  dio.interceptors.add(
-    LogInterceptor(
+    // Add pretty_dio_logger interceptor for beautiful HTTP request/response logging
+    dio.interceptors.add(PrettyDioLogger(
+      requestHeader: true,
       requestBody: true,
       responseBody: true,
-      requestHeader: true,
       responseHeader: true,
       error: true,
-      logPrint: (object) {
-        // Use print for both debug and release modes
-        print('🌐 DIO LOG: $object');
-      },
-    ),
-  );
+      compact: false,
+      maxWidth: 90,
+    ));
 
-  locator.registerFactory<Dio>(() => dio);
+    return dio;
+  }());
 }
 
 void provideDioBaseOptions() {
