@@ -21,27 +21,25 @@ class ArticleListScreen extends StatefulWidget {
   State<ArticleListScreen> createState() => _ArticleListScreenState();
 }
 
-class _ArticleListScreenState extends State<ArticleListScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return BlocProvider(create: (context) => locator<ArticleListBloc>(),
-      child: const _ArticleListChildScreen(),
-    );
-  }
-}
-
-class _ArticleListChildScreen extends StatefulWidget {
-  const _ArticleListChildScreen();
-
-  @override
-  State<_ArticleListChildScreen> createState() => _ArticleListChildScreenState();
-}
-
-class _ArticleListChildScreenState extends State<_ArticleListChildScreen> with AutomaticKeepAliveClientMixin<_ArticleListChildScreen> {
+class _ArticleListScreenState extends State<ArticleListScreen> with AutomaticKeepAliveClientMixin<ArticleListScreen> {
   List<ArticleModel> list = [];
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = true;
   late AppColor _appColor;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return BlocProvider(
+      create: (context) => locator<ArticleListBloc>(),
+      child: _buildArticleList(),
+    );
+  }
+
+  Widget _buildArticleList() {
+    _appColor = Theme.of(context).extension<AppColor>()!;
+    return _createFavoriteRecipesResultWidget();
+  }
 
   @override
   void initState() {
@@ -76,13 +74,6 @@ class _ArticleListChildScreenState extends State<_ArticleListChildScreen> with A
         callGetArticleListEvent();
       }
     });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-    _appColor = Theme.of(context).extension<AppColor>()!;
-    return _createFavoriteRecipesResultWidget();
   }
 
   _createFavoriteRecipesResultWidget() {
@@ -221,7 +212,8 @@ class _ArticleListChildScreenState extends State<_ArticleListChildScreen> with A
     );
   }
 
-  /// call loading more if height of list not reached to the bottom of screen. because [_scrollController] not trigger until scroll event has been occurred.
+  /// call loading more if height of list not reached to the bottom of screen.
+  /// because [_scrollController] not trigger until scroll event has been occurred.
   void _callManualLoadingMoreItems() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
