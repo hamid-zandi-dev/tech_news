@@ -3,7 +3,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:tech_news/core/error_handling/failure.dart';
+import 'package:tech_news/core/error_handling/domain/failure.dart';
 import 'package:tech_news/core/utils/constants.dart';
 import 'package:tech_news/core/utils/utils.dart';
 import 'package:tech_news/features/article/domain/model/article_model.dart';
@@ -59,8 +59,17 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
             (success) => _handleSuccessResponse(success),
           );
         },
-        onError: (_, __) =>
-            GetArticleListState(ArticleListErrorStatus(Failure.unknownError)),
+        onError: (error, stackTrace) {
+          Logger.error('Stream error: $error', tag: 'ArticleListBloc');
+          final failure = UnknownFailure(
+            message: 'Stream error occurred: ${error.toString()}',
+            details: {
+              'error': error.toString(),
+              'stackTrace': stackTrace.toString()
+            },
+          );
+          return GetArticleListState(ArticleListErrorStatus(failure));
+        },
       );
     } else {
       Logger.debug('No more pages to load. Current page: $_pageNumber',
@@ -82,8 +91,7 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
   }
 
   GetArticleListState _handleSuccessResponse(List<ArticleModel> articles) {
-    Logger.debug(
-        'Articles fetched successfully: ${articles.length} articles',
+    Logger.debug('Articles fetched successfully: ${articles.length} articles',
         tag: 'ArticleListBloc');
 
     if (articles.isNotEmpty) {
@@ -91,7 +99,7 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
 
       // Increment page number for next pagination
       _pageNumber++;
-    }else{
+    } else {
       _endOfData = true;
     }
     ArticleListLoadedStatus loadedStatus =

@@ -1,8 +1,8 @@
 import 'package:rxdart/rxdart.dart';
 import 'package:dartz/dartz.dart';
 
-import 'package:tech_news/core/error_handling/custom_exception.dart';
-import 'package:tech_news/core/error_handling/failure.dart';
+import 'package:tech_news/core/error_handling/domain/failure.dart';
+import 'package:tech_news/core/error_handling/mapper/error_mapper.dart';
 import 'package:tech_news/core/utils/utils.dart';
 import 'package:tech_news/features/article/data/datasource/local/abstraction/local_articles_data_source.dart';
 import 'package:tech_news/features/article/data/datasource/local/entity/article_entity.dart';
@@ -80,6 +80,10 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
           } catch (e) {
             Logger.debug("Failed to fetch articles for $company: $e");
             // Continue with other companies even if one fails
+            // Convert exception to failure for logging
+            final failure = ErrorMapper.mapExceptionToFailure(e);
+            Logger.error("Company $company failed: ${failure.message}",
+                tag: 'Repository');
           }
         }
 
@@ -103,15 +107,20 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
 
           yield right(mergedModel.articles);
         } else {
-          yield left(Failure.unknownError);
+          yield left(ErrorMapper.createNoDataFoundFailure(
+              'No articles found for the requested parameters'));
         }
-      } on NoInternetConnectionException {
-        yield left(Failure.noInternetConnectionError);
       } catch (e) {
-        yield left(Failure.unknownError);
+        // Convert any exception to domain failure
+        final failure = ErrorMapper.mapExceptionToFailure(e);
+        Logger.error("Repository error: ${failure.message}", tag: 'Repository');
+        yield left(failure);
       }
     } catch (e) {
-      yield left(Failure.unknownError);
+      // Convert any exception to domain failure
+      final failure = ErrorMapper.mapExceptionToFailure(e);
+      Logger.error("Repository error: ${failure.message}", tag: 'Repository');
+      yield left(failure);
     }
   }
 
@@ -148,14 +157,22 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
   }
 
   Future<void> _saveArticles(List<ArticleModel> articles) async {
-    final entities = _localArticleMapper.mapToArticleEntityList(articles);
-    await _localArticlesDataSource.saveAllArticles(entities);
+    try {
+      final entities = _localArticleMapper.mapToArticleEntityList(articles);
+      await _localArticlesDataSource.saveAllArticles(entities);
+    } catch (e) {
+      Logger.error("Failed to save articles to database: $e",
+          tag: 'Repository');
+      // Convert database exception to domain failure and rethrow
+      final failure = ErrorMapper.mapExceptionToFailure(e);
+      throw failure;
+    }
   }
 
   /// Circular sort that distributes articles in round-robin fashion by company name
   /// Example: Microsoft, Apple, Google, Tesla, Microsoft, Apple, Google, Tesla...
   List<ArticleModel> _circularSortArticles(List<ArticleModel> items) {
-    final order = ['Microsoft', 'Apple', 'Google', 'Tesla'];
+    final order = ["Microsoft", "Apple", "Google", "Tesla"];
     final buckets = {for (var o in order) o: <ArticleModel>[]};
 
     // Group articles by company

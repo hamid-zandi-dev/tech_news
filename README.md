@@ -1,4 +1,4 @@
-# Tech News Hub - Senior Level Documentation
+# Tech News
 
 ## 🏗️ Architecture Overview
 

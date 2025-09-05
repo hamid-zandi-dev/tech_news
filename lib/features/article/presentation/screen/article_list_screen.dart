@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:tech_news/core/error_handling/failure.dart';
+import 'package:tech_news/core/error_handling/domain/failure.dart';
 import 'package:tech_news/core/theme/theme_manager.dart';
 import 'package:tech_news/core/utils/Constants.dart';
 import 'package:tech_news/core/widget/circular_progress_bar_widget.dart';
@@ -101,11 +101,10 @@ class _ArticleListScreenState extends State<ArticleListScreen>
             widget = _createLoadedWidget(list);
             _callManualLoadingMoreItems();
           } else if (state.articleListStatus is ArticleListErrorStatus) {
-            ArticleListErrorStatus favoriteRecipesErrorStatus =
+            ArticleListErrorStatus errorStatus =
                 state.articleListStatus as ArticleListErrorStatus;
             _isLoading = false;
-            widget =
-                _createErrorHandlingWidget(favoriteRecipesErrorStatus.failure);
+            widget = _createErrorHandlingWidget(errorStatus.failure);
           } else if (state.articleListStatus
               is ArticleListLoadedMoreErrorStatus) {
             _isLoading = false;
@@ -125,7 +124,10 @@ class _ArticleListScreenState extends State<ArticleListScreen>
   }
 
   Widget _createEmptyWidget() {
-    return _createErrorHandlingWidget(Failure.noFoundData);
+    return _createErrorHandlingWidget(NoDataFoundFailure(
+      message: 'No articles found',
+      code: 'NO_DATA_FOUND',
+    ));
   }
 
   Widget _createLoadingWidget() {
@@ -195,13 +197,9 @@ class _ArticleListScreenState extends State<ArticleListScreen>
         child: widget);
   }
 
-  /// call loading more if height of list not reached to the bottom of screen.
-  /// because [_scrollController] not trigger until scroll event has been occurred.
   void _callManualLoadingMoreItems() {
     SchedulerBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
-        // Only load more if the list is small enough to fit on screen
-        // and we're not already loading
         if (_scrollController.position.maxScrollExtent <= 0 && !_isLoading) {
           callGetArticleListEvent();
         }
