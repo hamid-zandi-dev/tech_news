@@ -31,10 +31,10 @@ class ArticleListBloc extends Bloc<ArticleListEvent, ArticleListState> {
     _pageNumber = 1;
     _endOfData = false;
     _articleListModel.clear();
-    DateTime now = DateTime.now();
-    DateFormat dateFormat = DateFormat("yyyy-MM-ddThh:mm:ss");
-    _to = dateFormat.format(now);
-    _from = dateFormat.format(now.subtract(const Duration(days: 2)));
+    DateTime nowUtc = DateTime.now().toUtc();
+    DateFormat isoNoMillisUtc = DateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    _to = isoNoMillisUtc.format(nowUtc);
+    _from = isoNoMillisUtc.format(nowUtc.subtract(const Duration(days: 2)));
     emit(InitialState());
   }
 

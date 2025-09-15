@@ -235,7 +235,7 @@ class _$ArticleDao extends ArticleDao {
     int pageLimit,
   ) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM articles      WHERE publishedAt <= ?2 AND publishedAt > ?3 AND queryName = ?1      ORDER BY publishedAt      LIMIT ?5      OFFSET (?4 - 1) * ?5',
+        'SELECT * FROM articles      WHERE publishedAt <= ?2 AND publishedAt > ?3 AND queryTitle = ?1      ORDER BY publishedAt      LIMIT ?5      OFFSET (?4 - 1) * ?5',
         mapper: (Map<String, Object?> row) => ArticleEntity(id: row['id'] as int?, sourceId: row['sourceId'] as String, sourceName: row['sourceName'] as String, author: row['author'] as String, title: row['title'] as String, description: row['description'] as String, url: row['url'] as String, urlToImage: row['urlToImage'] as String, publishedAt: row['publishedAt'] as String, content: row['content'] as String, queryTitle: row['queryTitle'] as String),
         arguments: [query, to, from, page, pageLimit]);
   }
@@ -247,7 +247,7 @@ class _$ArticleDao extends ArticleDao {
     String from,
   ) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM articles      WHERE publishedAt <= ?2 AND publishedAt > ?3 AND queryName = ?1      ORDER BY publishedAt',
+        'SELECT * FROM articles      WHERE publishedAt <= ?2 AND publishedAt > ?3 AND queryTitle = ?1      ORDER BY publishedAt',
         mapper: (Map<String, Object?> row) => ArticleEntity(id: row['id'] as int?, sourceId: row['sourceId'] as String, sourceName: row['sourceName'] as String, author: row['author'] as String, title: row['title'] as String, description: row['description'] as String, url: row['url'] as String, urlToImage: row['urlToImage'] as String, publishedAt: row['publishedAt'] as String, content: row['content'] as String, queryTitle: row['queryTitle'] as String),
         arguments: [query, to, from]);
   }

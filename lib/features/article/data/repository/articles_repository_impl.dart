@@ -143,12 +143,12 @@ class ArticlesRepositoryImpl extends ArticlesRepository {
         allLocalArticles.addAll(companyArticles);
       }
 
-      // If we have enough articles for this page, return them
-      if (allLocalArticles.length >= params.pageSize) {
+      // If we have any articles for this page, return them (offline-first)
+      if (allLocalArticles.isNotEmpty) {
         return allLocalArticles;
       }
 
-      // If we don't have enough articles, return empty list to trigger remote fetch
+      // If we don't have any articles, return empty list to trigger remote fetch
       return [];
     } catch (e) {
       Logger.debug("Error checking local page data: $e");

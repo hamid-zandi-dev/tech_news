@@ -4,7 +4,6 @@ import 'dart:async';
 
 @dao
 abstract class ArticleDao {
-
   @Query('SELECT * FROM articles')
   Stream<List<ArticleEntity>> getAllArticles();
 
@@ -15,30 +14,34 @@ abstract class ArticleDao {
     LIMIT :pageLimit 
     OFFSET (:page - 1) * :pageLimit
   ''')
-  Stream<List<ArticleEntity>> getArticlesWithPaging(String to, String from, int page, int pageLimit);
+  Stream<List<ArticleEntity>> getArticlesWithPaging(
+      String to, String from, int page, int pageLimit);
 
   @Query('''
     SELECT * FROM articles 
-    WHERE publishedAt <= :to AND publishedAt > :from AND queryName = :query 
+    WHERE publishedAt <= :to AND publishedAt > :from AND queryTitle = :query 
     ORDER BY publishedAt 
     LIMIT :pageLimit 
     OFFSET (:page - 1) * :pageLimit
   ''')
-  Future<List<ArticleEntity>> getArticlesWithPagingAndQuery(String query, String to, String from, int page, int pageLimit);
+  Future<List<ArticleEntity>> getArticlesWithPagingAndQuery(
+      String query, String to, String from, int page, int pageLimit);
 
   @Query('''
     SELECT * FROM articles 
-    WHERE publishedAt <= :to AND publishedAt > :from AND queryName = :query 
+    WHERE publishedAt <= :to AND publishedAt > :from AND queryTitle = :query 
     ORDER BY publishedAt 
   ''')
-  Future<List<ArticleEntity>> getArticlesWithQuery(String query, String to, String from);
+  Future<List<ArticleEntity>> getArticlesWithQuery(
+      String query, String to, String from);
 
   @Query('''
     SELECT * FROM articles 
     WHERE publishedAt <= :to AND publishedAt > :from AND title = :title 
     ORDER BY publishedAt 
   ''')
-  Future<List<ArticleEntity>> getArticlesWithTitle(String title, String to, String from);
+  Future<List<ArticleEntity>> getArticlesWithTitle(
+      String title, String to, String from);
 
   @Query('''
     SELECT * FROM articles 
@@ -60,5 +63,4 @@ abstract class ArticleDao {
 
   @Query('SELECT COUNT(*) FROM articles')
   Future<int?> getArticlesCount();
-
 }
